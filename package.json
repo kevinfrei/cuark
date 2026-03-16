@@ -57,6 +57,9 @@
     ],
     "CMakeLists.txt": [
       "passable -i"
+    ],
+    "*.{cpp,hpp,c,h,cc,hh}": [
+      "clang-format -i"
     ]
   },
   "dependencies": {
