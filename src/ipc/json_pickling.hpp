@@ -108,6 +108,27 @@ struct impl_to_json<char*> {
     return crow::json::wvalue(escape_json_string(value));
   }
 };
+
+template <>
+struct impl_to_json<uint64_t> {
+  static inline crow::json::wvalue process(const uint64_t& value) {
+    crow::json::wvalue v;
+    v["@dataType"] = "freik.BigInt";
+    v["@dataValue"] = std::to_string(value);
+    return v;
+  }
+};
+
+template <>
+struct impl_to_json<int64_t> {
+  static inline crow::json::wvalue process(const int64_t& value) {
+    crow::json::wvalue v;
+    v["@dataType"] = "freik.BigInt";
+    v["@dataValue"] = std::to_string(value);
+    return v;
+  }
+};
+
 template <>
 struct impl_to_json<std::string_view> {
   static inline crow::json::wvalue process(std::string_view value) {
@@ -228,7 +249,6 @@ struct impl_to_json<std::set<T>> {
   }
 };
 
-// I mean, sure, I guess, right?
 template <typename T>
 struct impl_to_json<std::optional<T>> {
   static inline crow::json::wvalue process(const std::optional<T>& value) {
@@ -330,19 +350,35 @@ inline std::optional<int32_t> from_json<int32_t>(
 template <>
 inline std::optional<uint64_t> from_json<uint64_t>(
     const crow::json::rvalue& json) {
-  if (json.nt() != crow::json::num_type::Unsigned_integer) {
+  if (json.t() != crow::json::type::Object || json.size() != 2) {
     return std::nullopt;
   }
-  return static_cast<uint64_t>(json.u());
+  if (json["@dataType"].s() != "freik.BigInt") {
+    return std::nullopt;
+  }
+  auto dataValue = json["@dataValue"];
+  if (dataValue.t() != crow::json::type::String) {
+    return std::nullopt;
+  }
+  std::string str = dataValue.s();
+  return std::stoull(str);
 }
 
 template <>
 inline std::optional<int64_t> from_json<int64_t>(
     const crow::json::rvalue& json) {
-  if (json.nt() == crow::json::num_type::Floating_point) {
+  if (json.t() != crow::json::type::Object || json.size() != 2) {
     return std::nullopt;
   }
-  return static_cast<int64_t>(json.u());
+  if (json["@dataType"].s() != "freik.BigInt") {
+    return std::nullopt;
+  }
+  auto dataValue = json["@dataValue"];
+  if (dataValue.t() != crow::json::type::String) {
+    return std::nullopt;
+  }
+  std::string str = dataValue.s();
+  return std::stoll(str);
 }
 
 template <>
