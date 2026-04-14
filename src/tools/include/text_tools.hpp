@@ -70,11 +70,12 @@ T from_string(const std::string& s) {
     // std::from_chars is strict and fast
     auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), val);
 
-    // If conversion fails (e.g. "abc" -> int), return 0 or throw
-    return (ec == std::errc{}) ? val : T{};
-  } else {
-    return T{};
+    // If conversion fails (e.g. "abc" -> int), return 0
+    if (ec == std::errc{}) {
+      return val;
+    }
   }
+  return T{};
 }
 
 template <typename T>
@@ -90,7 +91,7 @@ T from_string(const std::string_view& s) {
     // std::from_chars is strict and fast
     auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), val);
 
-    // If conversion fails (e.g. "abc" -> int), return 0 or throw
+    // If conversion fails (e.g. "abc" -> int), return 0
     if (ec == std::errc{}) {
       return val;
     }

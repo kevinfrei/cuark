@@ -198,6 +198,11 @@ crow::response tune(const crow::request& req, const std::string& path) {
   return resp;
 }
 
+// Helper to index a parameter-pack of argument types. Takes the index and
+// the parameter-pack so it can be used at namespace scope.
+template <size_t ArgIndex, typename... Args>
+using ArgT = std::tuple_element_t<ArgIndex, std::tuple<std::decay_t<Args>...>>;
+
 // Internal worker that deduces arg types
 template <typename... Args, typename Func>
 void Execute(crow::response& resp, std::string_view path, Func&& handle_call) {
@@ -225,13 +230,16 @@ void Execute(crow::response& resp, std::string_view path, Func&& handle_call) {
   }
 
   // Unpack and Call
-  auto call_and_respond = [&]<size_t... Is>(std::index_sequence<Is...>) {
+  auto call_and_respond = [&]<size_t... ArgIndex>(
+      std::index_sequence<ArgIndex...>) {
     using ReturnType = std::invoke_result_t<Func, std::decay_t<Args>...>;
 
     try {
       // Returning function: Execute and encode result
-      auto result =
-          handle_call(text::from_string<std::decay_t<Args>>(segments[Is])...);
+      // Use the Is... index pack to pick the corresponding type from the
+      // Args... pack by indexing into a tuple of the decayed argument types.
+      auto result = handle_call(
+          text::from_string<ArgT<ArgIndex, Args...>>(segments[ArgIndex])...);
       if constexpr (std::is_void_v<ReturnType>) {
         // Void function: Just execute and return 204 (No Content) or 200
       } else if constexpr (std::is_integral_v<ReturnType>) {
@@ -261,8 +269,7 @@ void Execute(crow::response& resp, std::string_view path, Func&& handle_call) {
   call_and_respond(std::make_index_sequence<ArgCount>{});
 }
 
-// 3. Overload A: For regular functions (e.g., bool myFunc(string_view,
-// string_view))
+// Overload A: For regular functions: bool myFunc(string_view, int)
 template <typename R, typename... Args>
 void InternalCall(crow::response& resp,
                   std::string_view remaining,
@@ -271,7 +278,7 @@ void InternalCall(crow::response& resp,
   Execute<Args...>(resp, remaining, func);
 }
 
-// 4. Overload B: For lambdas/functors (has an operator())
+// Overload B: For lambdas/functors: has an operator()
 template <typename Func, typename R, typename... Args>
 void InternalCall(crow::response& resp,
                   std::string_view remaining,
@@ -358,7 +365,7 @@ crow::response api(const crow::request&, const std::string& the_path) {
   return resp;
 }
 
-void socket_message(crow::websocket::connection& conn,
+void socket_message(crow::websocket::connection& /* conn */,
                     const std::string& data,
                     bool /* is_binary */) {
   CROW_LOG_INFO << "Got a message from the client:" << data;
