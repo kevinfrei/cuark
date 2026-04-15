@@ -1,6 +1,6 @@
 {
   "name": "my-cuark-app",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "scripts": {
     "cfmt": "passable -i -q \"CMakeLists.txt\" \"src/**/CMakeLists.txt\" \"src/**/*.cmake\" \".cuark/*.cmake\"",
@@ -78,14 +78,14 @@
   },
   "devDependencies": {
     "@freik/passable": "^0.2.1",
-    "@freik/ts-cpp-tooling": "^0.4.1",
+    "@freik/ts-cpp-tooling": "^0.4.2",
     "@freik/workspace": "^0.7.0",
     "@types/bun": "^1.3.12",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "clang-format": "^1.8.0",
     "lint-staged": "^16.4.0",
-    "prettier": "^3.8.2",
+    "prettier": "^3.8.3",
     "prettier-plugin-organize-imports": "^4.3.0",
     "simple-git-hooks": "^2.13.1",
     "typescript": "^6.0.2"
