@@ -27,7 +27,6 @@ namespace {
 // This is a singleton pattern to ensure we only initialize the paths once.
 bool inited = false;
 std::shared_mutex init_mutex;
-fs::path home_path;
 fs::path cfg_path;
 bool config_ready = false;
 
@@ -41,18 +40,6 @@ void init() {
       return; // Another thread initialized it while we were waiting
     }
     cfg_path = sago::getStateDir();
-#if defined(_WIN32)
-    home_path = fs::canonical(getenv("USERPROFILE"));
-    // cfg_path = fs::canonical(getenv("LOCALAPPDATA"));
-#elif defined(__APPLE__)
-    home_path = fs::canonical(getenv("HOME"));
-    // cfg_path = fs::canonical(home_path / "Library" / "Application Support");
-#elif defined(__linux__)
-    home_path = fs::canonical(getenv("HOME"));
-    // cfg_path = fs::canonical(home_path / ".config");
-#else
-#error Unsupported platform: I only grok Windows, macOS, and Linux.
-#endif
     inited = true;
   }
 }
@@ -72,11 +59,6 @@ void not_ready() {
 bool is_ready() {
   read_lock lock(init_mutex);
   return config_ready;
-}
-
-const fs::path& get_home_path() {
-  init();
-  return home_path;
 }
 
 // Returns the path to the configuration directory for the application.

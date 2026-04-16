@@ -8,8 +8,6 @@
 
 namespace config {
 
-const std::filesystem::path& get_home_path();
-
 using listening_function = std::function<void(std::optional<std::string_view>,
                                               std::optional<std::string_view>)>;
 
