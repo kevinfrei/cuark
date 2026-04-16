@@ -198,6 +198,8 @@ crow::response tune(const crow::request& req, const std::string& path) {
   return resp;
 }
 
+#pragma region Template Magic for API Calls
+
 // Helper to index a parameter-pack of argument types. Takes the index and
 // the parameter-pack so it can be used at namespace scope.
 template <size_t ArgIndex, typename... Args>
@@ -304,6 +306,8 @@ void ValidateAndCall(crow::response& resp,
                  &std::remove_reference_t<Func>::operator());
   }
 }
+
+#pragma endregion
 
 // The URL comes in looking like this:
 // https://.../api/<call-id>{/arg1/arg2/etc...} so the_path is

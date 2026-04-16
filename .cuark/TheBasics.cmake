@@ -1,5 +1,5 @@
-# C++20, cuz we're living in the future
-set(CMAKE_CXX_STANDARD 20)
+# C++23, cuz we're living in the future
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Extensions are a way to break your app on different OS'es. Bad bad bad
 set(CMAKE_CXX_EXTENSIONS OFF)

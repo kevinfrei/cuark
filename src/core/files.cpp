@@ -74,7 +74,7 @@ std::string path_to_mime_type(const fs::path& file_path) {
 fs::path file_name_encode(std::string_view filename);
 std::optional<std::string> file_name_decode(std::string_view filename);
 
-#if 0
+/*
 std::string LoadFileWithMimeType(const fs::path& path,
                                  std::string& mime_type) {
   std::ifstream input_file(path, std::ifstream::binary);
@@ -93,7 +93,7 @@ std::string LoadFileWithMimeType(const fs::path& path,
 
   return ret;
 }
-#endif
+*/
 
 // Mac and Linux can't have colons or slashes in filenames.
 // Windows can't have a whole range of characters in filenames,
