@@ -11,7 +11,7 @@ FetchContent_Declare(
   GIT_REPOSITORY
   https://github.com/kevinfrei/webview
   GIT_TAG
-  0.12.1
+  0.12.3
 )
 FetchContent_MakeAvailable(webview)
 # This let's me use the same syntax as all my dependencies:

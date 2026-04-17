@@ -74,8 +74,9 @@ T from_string(const std::string& s) {
     if (ec == std::errc{}) {
       return val;
     }
+  } else {
+    return T{};
   }
-  return T{};
 }
 
 template <typename T>
