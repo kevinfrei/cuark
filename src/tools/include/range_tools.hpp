@@ -1,3 +1,5 @@
+#pragma once
+
 #include <memory>
 #include <ranges>
 #include <string_view>

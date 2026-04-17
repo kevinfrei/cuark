@@ -4,7 +4,7 @@
   "private": false,
   "scripts": {
     "cfmt": "passable -i -q \"CMakeLists.txt\" \"src/**/CMakeLists.txt\" \"src/**/*.cmake\" \".cuark/*.cmake\"",
-    "format": "tools format bun && bun run cfmt",
+    "format": "tools format && bun run cfmt",
     "fmt": "bun run format",
     "clean": "bun run .cuark/clean.ts",
     "dcfg": "cmake --preset debug",
