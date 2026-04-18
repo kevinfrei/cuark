@@ -5,7 +5,7 @@
 namespace setup {
 
 std::uint16_t get_random_port();
-void init();
+void init(int argc, const char* argv[]);
 void run();
 
 } // namespace setup

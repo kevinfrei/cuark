@@ -7,8 +7,14 @@
 
 #include "files.hpp"
 
+#if defined(_WIN32)
+static const char* argv0 = "core_testing.exe";
+#else
+static const char* argv0 = "core_testing";
+#endif
+
 TEST(Files, Miscellany) {
-  files::set_program_location();
+  files::set_program_location(argv0);
   auto web_dir = files::get_web_dir();
   std::filesystem::path index = web_dir / "index.html";
   EXPECT_TRUE(std::filesystem::exists(index));

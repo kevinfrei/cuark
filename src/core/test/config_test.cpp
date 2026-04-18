@@ -9,15 +9,21 @@
 
 #include "config.hpp"
 
+#if defined(_WIN32)
+static const char* argv0 = "core_testing.exe";
+#else
+static const char* argv0 = "core_testing";
+#endif
+
 TEST(Config, TheBasics) {
-  files::set_program_location();
+  files::set_program_location(argv0);
   std::filesystem::path res = config::get_path();
   EXPECT_FALSE(res.empty());
   EXPECT_EQ(res.stem(), files::get_app_name());
 }
 
 TEST(Config, Storage) {
-  files::set_program_location();
+  files::set_program_location(argv0);
   // Test if the item is writable
   EXPECT_TRUE(config::write_to_storage("test_key", "test-value"));
   EXPECT_TRUE(config::write_to_storage("Test key", "test-value2"));
@@ -40,7 +46,7 @@ TEST(Config, Storage) {
 }
 
 TEST(Config, StorageNotifcations) {
-  files::set_program_location();
+  files::set_program_location(argv0);
   // Test if the item is writable
   std::int32_t id1, id2, id3;
   std::optional<std::string> old1, new1, old2, new2;

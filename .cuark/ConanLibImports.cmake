@@ -1,9 +1,6 @@
 # Generated file: DO NOT EDIT
 # Add your library to the conanfile.py libraries list
 
-find_package(Boost REQUIRED)
-set(BOOST_LIB boost::boost)
-
 find_package(Crow REQUIRED)
 set(CROW_LIB Crow::Crow)
 

@@ -66,9 +66,9 @@ uint16_t get_random_port() {
   return port;
 }
 
-void init() {
+void init(int, const char* argv[]) {
   setlocale(LC_ALL, ".UTF8");
-  files::set_program_location();
+  files::set_program_location(argv[0]);
   std::string url = get_root_url();
   CROW_LOG_INFO << "Starting server at " << url;
 

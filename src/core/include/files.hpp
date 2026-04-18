@@ -10,7 +10,7 @@
 #include "CommonTypes.hpp"
 namespace files {
 
-void set_program_location();
+void set_program_location(const char* argv0);
 std::filesystem::path get_web_dir();
 std::filesystem::path get_app_name();
 std::string path_to_mime_type(const std::filesystem::path& file_path);

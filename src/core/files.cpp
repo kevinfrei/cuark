@@ -2,7 +2,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/dll/runtime_symbol_info.hpp>
 #include <crow/http_response.h>
 #include <crow/logging.h>
 #include <portable-file-dialogs.h>
@@ -19,8 +18,20 @@ namespace files {
 fs::path program_location;
 fs::path web_dir;
 
-void set_program_location() {
-  program_location = boost::dll::program_location().string();
+void set_program_location(const char* argv0) {
+  if (argv0 == nullptr || argv0[0] == '\0') {
+    CROW_LOG_ERROR << "argv[0] is empty, falling back to just 'cuark'";
+    program_location = fs::canonical(fs::current_path() / "cuark");
+    return;
+  }
+  fs::path potential_location(argv0);
+  if (potential_location.is_absolute()) {
+    program_location = fs::canonical(potential_location);
+  } else if (potential_location.is_relative()) {
+    program_location = fs::canonical(potential_location);
+  } else {
+    program_location = fs::canonical(fs::current_path() / argv0);
+  }
 }
 
 fs::path get_web_dir() {
