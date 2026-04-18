@@ -200,12 +200,12 @@ crow::response tune(const crow::request& req, const std::string& path) {
 
 std::unordered_map<Shared::IpcCall, RouteHandler> RouteTable;
 
-void InitializeDefaultApis() {
-  RegisterRoute(Shared::IpcCall::WriteToStorage, config::write_to_storage);
-  RegisterRoute(Shared::IpcCall::ReadFromStorage, config::read_from_storage);
-  RegisterRoute(Shared::IpcCall::DeleteFromStorage,
-                config::delete_from_storage);
-  RegisterRoute(Shared::IpcCall::ShowOpenDialog, files::new_folder_picker);
+void initialize_default_apis() {
+  register_route(Shared::IpcCall::WriteToStorage, config::write_to_storage);
+  register_route(Shared::IpcCall::ReadFromStorage, config::read_from_storage);
+  register_route(Shared::IpcCall::DeleteFromStorage,
+                 config::delete_from_storage);
+  register_route(Shared::IpcCall::ShowOpenDialog, files::new_folder_picker);
 }
 
 // The URL comes in looking like this:
@@ -227,9 +227,10 @@ crow::response api(const crow::request&, const std::string& the_path) {
   }
   // TODO: Finish stuff from here:
   path = path.substr(slash + 1, path.length() - (slash + 1));
-  if (RouteTable.contains(callId)) {
+  auto api_route = RouteTable.find(callId);
+  if (api_route != RouteTable.end()) {
     // Run the template magic via the table
-    RouteTable[callId](resp, path);
+    api_route->second(resp, path);
   } else {
     tools::e404(resp, "Route not found");
   }

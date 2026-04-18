@@ -2,6 +2,7 @@ add_executable(
   core_testing
   config_test.cpp
   files_test.cpp
+  handlers_test.cpp
   images_test.cpp
   tools_test.cpp
 )

@@ -64,7 +64,7 @@ T from_string(const std::string& s) {
   } else if constexpr (std::is_same_v<T, std::string_view>) {
     // Warning: This is only safe if the underlying string outlives the view!
     return std::string_view(s);
-  } else if constexpr (std::is_arithmetic_v<T>) {
+  } else if constexpr (std::is_arithmetic_v<T> || is_enum_class_v<T>) {
     // Handle numeric types (int, double, etc.)
     T val{};
     // std::from_chars is strict and fast
@@ -74,27 +74,26 @@ T from_string(const std::string& s) {
     if (ec == std::errc{}) {
       return val;
     }
-  } else {
-    return T{};
   }
+  return T{};
 }
 
 template <typename T>
-T from_string(const std::string_view& s) {
+T from_string(std::string_view s) {
   if constexpr (std::is_same_v<T, std::string_view>) {
     return s;
   } else if constexpr (std::is_same_v<T, std::string>) {
     // Handle std::string types
     return std::string(s);
-  } else if constexpr (std::is_arithmetic_v<T>) {
+  } else if constexpr (std::is_arithmetic_v<T> || is_enum_class_v<T>) {
     // Handle numeric types (int, double, etc.)
-    T val{};
+    std::underlying_type_t<T> val{};
     // std::from_chars is strict and fast
     auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), val);
 
     // If conversion fails (e.g. "abc" -> int), return 0
     if (ec == std::errc{}) {
-      return val;
+      return static_cast<T>(val);
     }
   }
   return T{};

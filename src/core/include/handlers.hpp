@@ -21,7 +21,7 @@ using RouteHandler = std::function<void(crow::response&, std::string_view)>;
 // A static registry to hold your routes
 extern std::unordered_map<Shared::IpcCall, RouteHandler> RouteTable;
 
-namespace {
+namespace _internal_glue {
 
 // This is the "glue" that hides the template types from the table
 
@@ -136,17 +136,18 @@ void ValidateAndCall(crow::response& resp,
 
 #pragma endregion
 
-} // namespace
+} // namespace _internal_glue
 
 // The helper to "erase" the types
 template <typename Func>
-void RegisterRoute(const Shared::IpcCall& call, Func&& handler) {
+void register_route(const Shared::IpcCall& call, Func&& handler) {
   RouteTable[call] = [handler = std::forward<Func>(handler)](
                          crow::response& resp, std::string_view path) {
-    ValidateAndCall(resp, path, handler);
+    _internal_glue::ValidateAndCall(resp, path, handler);
   };
 }
 
+void initialize_default_apis();
 crow::response www_path(const crow::request& req, const std::string& path);
 crow::response images(const crow::request&, const std::string& path);
 crow::response tune(const crow::request& req, const std::string& path);
