@@ -2,6 +2,7 @@ import { MakeLog } from '@freik/logger';
 import MakeSeqNum from '@freik/seqnum';
 import {
   hasFieldType,
+  isBoolean,
   isDefined,
   isFunction,
   isNumberOrString,
@@ -307,15 +308,19 @@ export async function RawGetAsJSON(
   return undefined;
 }
 
+// This is designed to be handled on the C++ side automatically,
+// so changing stuff here could cause problems. Be careful!
 function encodeForCall(arg: unknown): string {
-  if (isNumberOrString(arg)) {
+  if (isNumberOrString(arg) || isBoolean(arg)) {
+    // Simple stuff goes across as-is, but we still need to encode it for the URL.
     return encodeURIComponent(arg);
   } else if (isObjectNonNull(arg) || Array.isArray(arg)) {
+    // Complex stuff gets pickled (mostly just JSON'ed) then encoded for the URL. This allows us to send complex data structures as arguments to IPC calls.
     return encodeURIComponent(Pickle(arg));
-  } else if (isDefined(arg)) {
-    return encodeURIComponent(String(arg));
   } else {
-    return '';
+    throw new Error(
+      `Cannot encode argument of type ${typeof arg} for IPC call: ${arg}`,
+    );
   }
 }
 

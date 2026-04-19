@@ -40,6 +40,8 @@ void Execute(crow::response& resp, std::string_view path, Func&& handle_call) {
   auto pos = segments.begin();
   auto path_chunks = path | views::split_string_view('/');
   size_t count = 0;
+  // First, URL-decode each segment into the segments array. If there are too
+  // many or too few, or if decoding fails, return a 404.
   for (auto const segment : path_chunks) {
     if (pos == segments.end()) {
       tools::e404(resp, "Too many parameters: " + std::string(path));
@@ -67,25 +69,26 @@ void Execute(crow::response& resp, std::string_view path, Func&& handle_call) {
       // Returning function: Execute and encode result
       // Use the Is... index pack to pick the corresponding type from the
       // Args... pack by indexing into a tuple of the decayed argument types.
-      auto result = handle_call(
-          text::from_string<ArgT<ArgIndex, Args...>>(segments[ArgIndex])...);
       if constexpr (std::is_void_v<ReturnType>) {
         // Void function: Just execute and return 204 (No Content) or 200
-      } else if constexpr (std::is_integral_v<ReturnType>) {
-        resp.set_header("Content-Type", "application/text");
-        resp.body = std::to_string(result);
-      } else if constexpr (std::is_same_v<ReturnType, std::string> ||
-                           std::is_same_v<ReturnType, std::string_view> ||
-                           std::is_same_v<ReturnType, char*>) {
-        resp.set_header("Content-Type", "application/text");
-        resp.body = std::string(result);
+        handle_call(
+            text::from_string<ArgT<ArgIndex, Args...>>(segments[ArgIndex])...);
       } else {
-        // Assuming Crow's wvalue or similar JSON lib
-        // crow::json::wvalue json_out;
-        // json_out["result"] = result;
-
-        resp.set_header("Content-Type", "application/json");
-        resp.body = to_json(result).dump();
+        auto result = handle_call(
+            text::from_string<ArgT<ArgIndex, Args...>>(segments[ArgIndex])...);
+        if constexpr (std::is_integral_v<ReturnType>) {
+          resp.set_header("Content-Type", "application/text");
+          resp.body = std::to_string(result);
+        } else if constexpr (std::is_same_v<ReturnType, std::string> ||
+                             std::is_same_v<ReturnType, std::string_view> ||
+                             std::is_same_v<ReturnType, char*>) {
+          resp.set_header("Content-Type", "application/text");
+          resp.body = std::string(result);
+        } else {
+          // Assuming Crow's wvalue or similar JSON lib
+          resp.set_header("Content-Type", "application/json");
+          resp.body = to_json(result).dump();
+        }
       }
       resp.code = 200;
       resp.end();

@@ -9,6 +9,7 @@
 #include <string_view>
 #include <type_traits>
 
+#include "crow.h"
 #include "json_pickling.hpp"
 
 namespace text {
@@ -57,37 +58,31 @@ inline std::enable_if_t<is_enum_class_v<T>, std::optional<T>> to_integer(
 }
 
 template <typename T>
-T from_string(const std::string& s) {
-  if constexpr (std::is_same_v<T, std::string>) {
-    // Handle std::string types
-    return s;
-  } else if constexpr (std::is_same_v<T, std::string_view>) {
-    // Warning: This is only safe if the underlying string outlives the view!
-    return std::string_view(s);
-  } else if constexpr (std::is_arithmetic_v<T> || is_enum_class_v<T>) {
-    // Handle numeric types (int, double, etc.)
-    T val{};
-    // std::from_chars is strict and fast
-    auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), val);
-
-    // If conversion fails (e.g. "abc" -> int), return 0
-    if (ec == std::errc{}) {
-      return val;
-    }
-  }
-  return T{};
-}
-
-template <typename T>
 T from_string(std::string_view s) {
   if constexpr (std::is_same_v<T, std::string_view>) {
     return s;
   } else if constexpr (std::is_same_v<T, std::string>) {
     // Handle std::string types
     return std::string(s);
-  } else if constexpr (std::is_arithmetic_v<T> || is_enum_class_v<T>) {
-    // Handle numeric types (int, double, etc.)
-    std::underlying_type_t<T> val{};
+  } else if constexpr (std::is_same_v<T, bool>) {
+    // Handle boolean types: This is weak, but I don't really care too much,
+    // right now...
+    return (s == "true");
+  } else if constexpr (std::is_floating_point_v<T>) {
+    // macos/Apple clang doesn't support std::from_chars for floating-point
+    // types, so we have to fall back to strtof/d, which is slower but more
+    // widely supported. We also need to check that the entire string was
+    // consumed, to avoid cases where "abc" would be converted to 0.0 without
+    // error.
+    char* end;
+    T res = (std::is_same_v<T, float>) ? std::strtof(s.data(), &end)
+                                       : std::strtod(s.data(), &end);
+    return (end == s.data() + s.size()) ? res : T{};
+  } else if constexpr (std::is_integral_v<T> && sizeof(T) < 8) {
+    // Handle numeric types (int, char, short, etc...), but we have to handle 64
+    // bit integers separately, because on the Javascript side they have to be
+    // BigInts, so they get encoded differently.
+    T val{};
     // std::from_chars is strict and fast
     auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), val);
 
@@ -95,8 +90,24 @@ T from_string(std::string_view s) {
     if (ec == std::errc{}) {
       return static_cast<T>(val);
     }
+  } else {
+    // For other types, we unpickle it using the from_json framework from
+    // crow-idl
+    auto res = from_json<T>(crow::json::load(s.data(), s.size()));
+    if (res.has_value()) {
+      return res.value();
+    }
   }
   return T{};
+}
+
+template <typename T>
+T from_string(const std::string& s) {
+  if constexpr (std::is_same_v<T, std::string>) {
+    // Handle std::string types
+    return s;
+  }
+  return from_string<T>(std::string_view{s});
 }
 
 template <typename T>
