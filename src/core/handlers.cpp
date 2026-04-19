@@ -222,7 +222,7 @@ crow::response api(const crow::request&, const std::string& the_path) {
   Shared::IpcCall callId =
       text::from_string<Shared::IpcCall>(path.substr(0, slash));
   if (!Shared::is_valid(callId)) {
-    tools::e404(resp, "Unknown API for path " + std::string(path));
+    tools::e404(resp, "Unknown API: " + the_path);
     return resp;
   }
   // TODO: Finish stuff from here:
@@ -232,7 +232,7 @@ crow::response api(const crow::request&, const std::string& the_path) {
     // Run the template magic via the table
     api_route->second(resp, path);
   } else {
-    tools::e404(resp, "Route not found");
+    tools::e404(resp, "API Handler not found: " + the_path);
   }
   /*
   switch (callId) {

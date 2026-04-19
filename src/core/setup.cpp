@@ -43,6 +43,7 @@ void configure_routes(crow::SimpleApp& app, const std::string& /*url*/) {
   // App-specific routes down here. I should probably delete /tune from Cuark,
   // but it's helpful as an example, right? Right?
   CROW_ROUTE(app, "/tune/<path>")(handlers::tune);
+  handlers::initialize_default_apis();
 }
 
 crow::SimpleApp* the_app = nullptr;

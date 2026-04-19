@@ -12,7 +12,7 @@
 
 TEST(Handlers, SimpleStuff) {
   int num = 0;
-  std::string_view strv = "nope";
+  std::string strv = "nope";
   std::optional<int> flg = std::nullopt;
   handlers::register_route(
       Shared::IpcCall::MenuAction,
@@ -30,12 +30,16 @@ TEST(Handlers, SimpleStuff) {
         flg = flag;
         return true;
       });
-  handlers::api(crow::request{}, "10/42/hello/1");
+  handlers::api(crow::request{},
+                std::string{Shared::to_string(Shared::IpcCall::MenuAction)} +
+                    "/42/hello/1");
   EXPECT_EQ(num, 42);
   EXPECT_EQ(strv, "hello");
   EXPECT_TRUE(flg.has_value());
   EXPECT_EQ(flg.value(), 1);
-  handlers::api(crow::request{}, "9/14/world/1313");
+  handlers::api(crow::request{},
+                std::string{Shared::to_string(Shared::IpcCall::AsyncData)} +
+                    "/14/world/1313");
   EXPECT_EQ(num, 42 ^ 14);
   EXPECT_EQ(strv, "world");
   EXPECT_TRUE(flg.has_value());
@@ -52,7 +56,9 @@ TEST(Handlers, ComplexArgs) {
                              EXPECT_EQ(md.data, "bar");
                              wasRun = true;
                            });
-  handlers::api(crow::request{},
-                "2/123/%7B%22type%22%3A%22text%22%2C%22data%22%3A%22bar%22%7D");
+  handlers::api(
+      crow::request{},
+      std::string{Shared::to_string(Shared::IpcCall::WriteToStorage)} +
+          "/123/%7B%22type%22%3A%22text%22%2C%22data%22%3A%22bar%22%7D");
   EXPECT_TRUE(wasRun);
 }
