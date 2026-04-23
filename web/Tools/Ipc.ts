@@ -378,14 +378,10 @@ async function GetAs<T>(
 ): Promise<T | undefined> {
   const res = await Get(endpoint, ...args);
   if (isString(res)) {
+    if (validator(res)) {
+      return res;
+    }
     try {
-      if (
-        endpoint === IpcCall.ReadFromStorage &&
-        args.length === 1 &&
-        args[0] === 'locations'
-      ) {
-        err(`ReadFromStorage("locations") returned: "${res}"`);
-      }
       return SafelyUnpickle(res, validator);
     } catch (e) {
       err(
@@ -396,9 +392,7 @@ async function GetAs<T>(
       return undefined;
     }
   }
-  wrn(
-    `GetAs failed to validate result from Get(${endpoint}, ${args.join(', ')}):`,
-  );
+  wrn(`GetAs failed validation from Get(${endpoint}, ${args.join(', ')}):`);
   if (hasFieldType(res, 'text', isFunction)) {
     try {
       const val = await res.text();

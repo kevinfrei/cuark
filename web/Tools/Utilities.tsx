@@ -7,7 +7,13 @@ import {
   SpinButton,
 } from '@fluentui/react';
 import { MakeLog } from '@freik/logger';
-import { isArrayOfString, isNumber, isUndefined } from '@freik/typechk';
+import {
+  chkAnyOf,
+  isArrayOfString,
+  isNumber,
+  isString,
+  isUndefined,
+} from '@freik/typechk';
 import {
   CSSProperties,
   Component,
@@ -159,13 +165,17 @@ export class ErrorBoundary extends Component<EBProps, EBState> {
 export async function ShowOpenDialog(
   options: OpenDialogOptions,
 ): Promise<string[] | void> {
-  const res = await CallMain(IpcCall.ShowOpenDialog, isArrayOfString, options);
+  const res = await CallMain(
+    IpcCall.ShowOpenDialog,
+    chkAnyOf(isString, isArrayOfString),
+    options,
+  );
   if (res) {
     console.log('ShowOpenDialog result:', res);
   } else {
     console.log('ShowOpenDialog cancelled or failed');
   }
-  return res;
+  return isString(res) ? [res] : res;
 }
 
 export const useEffectOnce = (effect: () => void | (() => void)) => {
