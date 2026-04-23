@@ -1,11 +1,21 @@
 import { DefaultButton } from '@fluentui/react';
 import { Expandable, StateToggle } from '@freik/fluentui-tools';
-import { isBoolean } from '@freik/typechk';
-import { CSSProperties, ReactElement } from 'react';
-import { IpcCall, StorageId } from '../../Shared/CommonTypes';
+import {
+  isArrayOfString,
+  isBoolean,
+  isString,
+  isUndefined,
+} from '@freik/typechk';
+import { CSSProperties, ReactElement, useState } from 'react';
+import {
+  IpcCall,
+  OpenDialogOptions,
+  StorageId,
+} from '../../Shared/CommonTypes';
 import { useJotaiBoolState } from '../../State/Hooks';
 import { atomWithMainStorage } from '../../State/Storage';
 import { PostMain } from '../../Tools/Ipc';
+import { ShowOpenDialog } from '../../Tools/Utilities';
 
 import './styles/Settings.css';
 
@@ -19,6 +29,7 @@ function ArticleSorting(): ReactElement {
 }
 
 export function SettingsView(): ReactElement {
+  const [Data, setData] = useState<string>('<uninitialized>');
   return (
     <div className="settings-view">
       <Expandable separator label="Some Things" defaultShow={true}>
@@ -46,6 +57,31 @@ export function SettingsView(): ReactElement {
             style={btnWidth}
             onClick={() => PostMain(IpcCall.MaximizeWindow)}
           />
+          <DefaultButton
+            text="Show Open File Dialog"
+            style={btnWidth}
+            onClick={() => {
+              const odo: OpenDialogOptions = {
+                folder: true,
+                title: 'This is the title',
+              };
+              ShowOpenDialog(odo).then((val) => {
+                if (isUndefined(val)) {
+                  setData('Undefined result');
+                } else if (isArrayOfString(val)) {
+                  setData(val.join('; '));
+                } else if (isString(val)) {
+                  setData(val);
+                } else {
+                  setData(
+                    'non-string result from OFD:' +
+                      JSON.stringify(val).toString(),
+                  );
+                }
+              });
+            }}
+          />
+          <div>{Data}</div>
         </>
       </Expandable>
     </div>

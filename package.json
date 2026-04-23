@@ -40,7 +40,7 @@
     "typecheck": "tsc --noEmit",
     "typechk": "tsc --noEmit",
     "***": "Generate the TypeScript & C++ types from the Crow IDL definitions",
-    "gen": "crow-idl web/Shared/Definitions.ts -c:src/ipc/CommonTypes.hpp -t:web/Shared/CommonTypes.ts",
+    "gen": "crow-idl web/Shared/CuarkDefs.ts -c:src/ipc/CommonTypes.hpp -t:web/Shared/CommonTypes.ts",
     "*-*": "Helper to do OS-specific things",
     "os": "bun run .cuark/os.ts"
   },
