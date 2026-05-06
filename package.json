@@ -42,7 +42,8 @@
     "***": "Generate the TypeScript & C++ types from the Crow IDL definitions",
     "gen": "crow-idl web/Shared/CuarkDefs.ts -c:src/ipc/CommonTypes.hpp -t:web/Shared/CommonTypes.ts",
     "*-*": "Helper to do OS-specific things",
-    "os": "bun run .cuark/os.ts"
+    "os": "bun run .cuark/os.ts",
+    "prepare": "bunx simple-git-hooks"
   },
   "simple-git-hooks": {
     "pre-commit": "bunx lint-staged",
@@ -64,13 +65,13 @@
   },
   "dependencies": {
     "@fluentui/react": "^8.125.5",
-    "@fluentui/react-components": "^9.73.7",
+    "@fluentui/react-components": "^9.73.8",
     "@fluentui/react-icons-mdl2": "^1.4.5",
-    "@freik/fluentui-tools": "^1.2.5",
-    "@freik/logger": "^0.4.5",
-    "@freik/react-tools": "^0.3.5",
-    "@freik/seqnum": "^1.3.5",
-    "@freik/typechk": "^0.9.1",
+    "@freik/fluentui-tools": "^1.2.10",
+    "@freik/logger": "^0.4.10",
+    "@freik/react-tools": "^0.3.10",
+    "@freik/seqnum": "^1.3.10",
+    "@freik/typechk": "^0.9.6",
     "jotai": "^2.19.1",
     "jotai-family": "^1.0.1",
     "react": "19.2.5",
@@ -79,8 +80,8 @@
   "devDependencies": {
     "@freik/passable": "^0.2.1",
     "@freik/ts-cpp-tooling": "^0.4.2",
-    "@freik/workspace": "^0.7.0",
-    "@types/bun": "^1.3.12",
+    "@freik/workspace": "^0.8.1",
+    "@types/bun": "^1.3.13",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "clang-format": "^1.8.0",
