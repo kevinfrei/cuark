@@ -20,9 +20,9 @@
       },
       "devDependencies": {
         "@freik/passable": "^0.2.1",
-        "@freik/ts-cpp-tooling": "^0.6.0",
+        "@freik/ts-cpp-tooling": "^0.6.1",
         "@freik/workspace": "^0.8.1",
-        "@types/bun": "^1.3.13",
+        "@types/bun": "^1.3.14",
         "@types/react": "19.2.14",
         "@types/react-dom": "19.2.3",
         "clang-format": "^1.8.0",
@@ -277,7 +277,7 @@
 
     "@freik/seqnum": ["@freik/seqnum@1.3.10", "", {}, "sha512-gqIqZmWuiubvJU/YzBz2DJ5AtCXzPtXvS+9tBBP1xBafcdW907XVb1OPyRh03lgje0W1WZ8OE9qx8M2OXKI7xg=="],
 
-    "@freik/ts-cpp-tooling": ["@freik/ts-cpp-tooling@0.6.0", "", { "dependencies": { "prettier-plugin-organize-imports": "^4.3.0", "ts-morph": "^28.0.0" }, "peerDependencies": { "@freik/typechk": "^0.9.1", "prettier": "^3.8.1", "typescript": "^6.0.3" }, "bin": { "crow-idl": "build/src/crow-idl.js", "ts-class-graph": "build/src/ts-class-graph.js" } }, "sha512-53+S4O5lEaw9PF4nP/2kcjU5ULZ/FCtGGFp23X1hsDpvOIpLDywC8LNRmqxn0myNg1OZvauLaAHHTkyrTuJtEw=="],
+    "@freik/ts-cpp-tooling": ["@freik/ts-cpp-tooling@0.6.1", "", { "dependencies": { "prettier-plugin-organize-imports": "^4.3.0", "ts-morph": "^28.0.0" }, "peerDependencies": { "@freik/typechk": "^0.9.1", "prettier": "^3.8.1", "typescript": "^6.0.3" }, "bin": { "crow-idl": "build/src/crow-idl.js", "ts-class-graph": "build/src/ts-class-graph.js" } }, "sha512-TxjRh22ldMWEeZUOv8S0oOXjSZc/JlXWWLaGyzIMtnFDqzpXTHd+AdUqHkaf6NU7vo+GUI0Z7bCPRjC2+R/WVQ=="],
 
     "@freik/typechk": ["@freik/typechk@0.9.6", "", {}, "sha512-xG9FZr5q6GBMiE0p3tfPnGpDfAgLseNt7YlwpvTULEAryEWNr0leReyNF3nJV23WzqIHdxvqAT3ToZNcceJxYg=="],
 
@@ -297,7 +297,7 @@
 
     "@ts-morph/common": ["@ts-morph/common@0.29.0", "", { "dependencies": { "minimatch": "^10.0.1", "path-browserify": "^1.0.1", "tinyglobby": "^0.2.14" } }, "sha512-35oUmphHbJvQ/+UTwFNme/t2p3FoKiGJ5auTjjpNTop2dyREspirjMy82PLSC1pnDJ8ah1GU98hwpVt64YXQsg=="],
 
-    "@types/bun": ["@types/bun@1.3.13", "", { "dependencies": { "bun-types": "1.3.13" } }, "sha512-9fqXWk5YIHGGnUau9TEi+qdlTYDAnOj+xLCmSTwXfAIqXr2x4tytJb43E9uCvt09zJURKXwAtkoH4nLQfzeTXw=="],
+    "@types/bun": ["@types/bun@1.3.14", "", { "dependencies": { "bun-types": "1.3.14" } }, "sha512-h1hFqFVcvAvD9j9K7ZW7vd82aSA+rTdznZa+5bwvCwqSB1jmmfLcbIWhOLx1/+boy/xmjgCs/OMUL8hRJSmnPw=="],
 
     "@types/node": ["@types/node@25.5.0", "", { "dependencies": { "undici-types": "~7.18.0" } }, "sha512-jp2P3tQMSxWugkCUKLRPVUpGaL5MVFwF8RDuSRztfwgN1wmqJeMSbKlnEtQqU8UrhTmzEmZdu2I6v2dpp7XIxw=="],
 
@@ -317,7 +317,7 @@
 
     "brace-expansion": ["brace-expansion@5.0.4", "", { "dependencies": { "balanced-match": "^4.0.2" } }, "sha512-h+DEnpVvxmfVefa4jFbCf5HdH5YMDXRsmKflpf1pILZWRFlTbJpxeU55nJl4Smt5HQaGzg1o6RHFPJaOqnmBDg=="],
 
-    "bun-types": ["bun-types@1.3.13", "", { "dependencies": { "@types/node": "*" } }, "sha512-QXKeHLlOLqQX9LgYaHJfzdBaV21T63HhFJnvuRCcjZiaUDpbs5ED1MgxbMra71CsryN/1dAoXuJJJwIv/2drVA=="],
+    "bun-types": ["bun-types@1.3.14", "", { "dependencies": { "@types/node": "*" } }, "sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ=="],
 
     "clang-format": ["clang-format@1.8.0", "", { "dependencies": { "async": "^3.2.3", "glob": "^7.0.0", "resolve": "^1.1.6" }, "bin": { "clang-format": "index.js", "git-clang-format": "bin/git-clang-format", "check-clang-format": "bin/check-clang-format.js" } }, "sha512-pK8gzfu55/lHzIpQ1givIbWfn3eXnU7SfxqIwVgnn5jEM6j4ZJYjpFqFs4iSBPNedzRMmfjYjuQhu657WAXHXw=="],
 

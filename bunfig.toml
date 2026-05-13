@@ -1,0 +1,4 @@
+[install]
+globalStore = true
+[run]
+noOrphans = true
