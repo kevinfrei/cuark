@@ -6,7 +6,6 @@ add_library(
   STATIC
     config.cpp
     files.cpp
-    from_json.cpp
     images.cpp
     handlers.cpp
     quitting.cpp

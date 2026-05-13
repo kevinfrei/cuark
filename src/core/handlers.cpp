@@ -15,7 +15,6 @@
 #include "config.hpp"
 #include "files.hpp"
 #include "images.hpp"
-#include "json_pickling.hpp"
 #include "quitting.hpp"
 #include "range_tools.hpp"
 #include "setup.hpp"

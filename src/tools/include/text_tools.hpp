@@ -9,8 +9,9 @@
 #include <string_view>
 #include <type_traits>
 
-#include "crow.h"
-#include "json_pickling.hpp"
+#include <crow.h>
+
+#include "CommonTypes.hpp"
 
 namespace text {
 

@@ -8,7 +8,6 @@
 #include <gtest/gtest.h>
 
 #include "CommonTypes.hpp"
-#include "json_pickling.hpp"
 
 TEST(CommonTypes, Keys) {
   crow::json::wvalue json_value = to_json(Shared::Keys::Settings);

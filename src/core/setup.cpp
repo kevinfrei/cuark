@@ -10,7 +10,6 @@
 #include "config.hpp"
 #include "files.hpp"
 #include "handlers.hpp"
-#include "json_pickling.hpp"
 #include "quitting.hpp"
 #include "websocket.hpp"
 #include "window.hpp"
