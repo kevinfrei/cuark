@@ -75,3 +75,38 @@ TEST(Text, Base64_silliness) {
   result_str = std::string(reinterpret_cast<const char*>(&result));
   EXPECT_EQ(result_str, expected);
 }
+
+TEST(Files, RootIterator) {
+  bool found_slash = false;
+  std::set<std::filesystem::path> roots;
+  size_t count = 0;
+  int len = -16384;
+  for (const auto& root : files::drive_range{}) {
+    found_slash |= (root == "/");
+    roots.insert(root);
+    count++;
+    if (len == -16384) {
+      len = root.string().size();
+    } else if (root.string().size() != static_cast<size_t>(len)) {
+      len = -1;
+    }
+    std::cout << "Found root: " << root << std::endl;
+  }
+#if defined(__linux__)
+  EXPECT_TRUE(found_slash);
+  EXPECT_TRUE(len == -1 ||
+              count == 1); // Linux roots can be long (e.g. /media/usb)
+#elif defined(__APPLE__)
+  EXPECT_TRUE(found_slash);
+  EXPECT_TRUE(len == -1 ||
+              count == 1); // Mac roots can be long (e.g. /Volumes/Thumb)
+#elif defined(_WIN32)
+  EXPECT_FALSE(found_slash);
+  EXPECT_TRUE(len == 3); // Windows roots should all be chars (e.g. C:\)
+#else
+  std::cout << "Testing on unknown OS\n";
+#endif
+  EXPECT_FALSE(roots.empty());
+  // No duplicates:
+  EXPECT_EQ(count, roots.size());
+}
