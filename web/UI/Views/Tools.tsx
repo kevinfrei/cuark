@@ -1,6 +1,7 @@
 import { Expandable } from '@freik/fluentui-tools';
 import { ReactElement } from 'react';
 
+import { FolderChooser } from '../Dialogs/FolderChooser';
 import './styles/Tools.css';
 
 export function ToolsView(): ReactElement {
@@ -12,6 +13,7 @@ export function ToolsView(): ReactElement {
       <Expandable separator label="Hidden Tool">
         <div>Put some less commonly used tool thing in here.</div>
       </Expandable>
+      <FolderChooser />
     </div>
   );
 }

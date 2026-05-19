@@ -1,3 +1,4 @@
+import { FluentProvider, webLightTheme } from '@fluentui/react-components';
 import { Provider } from 'jotai';
 import { ReactElement } from 'react';
 import { KeepAlive } from '../KeepAlive';
@@ -23,8 +24,10 @@ export function App(): ReactElement {
   const store = getStore();
   return (
     <Provider store={store}>
-      <KeepAlive />
-      <TheActualApp />
+      <FluentProvider theme={webLightTheme}>
+        <KeepAlive />
+        <TheActualApp />
+      </FluentProvider>
     </Provider>
   );
 }
