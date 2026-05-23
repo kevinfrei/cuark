@@ -10,6 +10,13 @@ import * as TC from '@freik/typechk';
 
 // TODO: Only emit the type checks that are needed
 
+function chkIdlU64(v: unknown): v is number {
+  if (TC.isNumber(v)) {
+    return Number.isInteger(v) && chkIdlU64(BigInt(v));
+  }
+  return TC.isBigInt(v) && BigInt.asUintN(64, v) === v;
+}
+
 function chkOptional<T>(chk: TC.typecheck<T>): TC.typecheck<T | undefined> {
   return (v: unknown): v is T | undefined => v === undefined || chk(v);
 }
@@ -66,6 +73,9 @@ export const IpcCall = Object.freeze({
   AsyncData: 9,
   MenuAction: 10,
   ShowOpenDialog: 11,
+  GetFileSystemRoots: 12,
+  GetNamedLocations: 13,
+  GetFolderContents: 14,
 });
 export type IpcCall = (typeof IpcCall)[keyof typeof IpcCall];
 export function chkIpcCall(val: unknown): val is IpcCall {
@@ -140,5 +150,37 @@ export const chkOpenDialogOptions: TC.typecheck<OpenDialogOptions> =
       filters: chkOptional(TC.chkArrayOf(chkFileFilterItem)),
     },
   );
+
+export type NamedLocation = {
+  name: string;
+  path: string;
+};
+export const chkNamedLocation: TC.typecheck<NamedLocation> = TC.chkObjectOfType(
+  {
+    name: TC.isString,
+    path: TC.isString,
+  },
+  {},
+);
+
+export type FileSystemItem = {
+  file: string;
+  date: string;
+  size: bigint;
+  type: string;
+};
+export const chkFileSystemItem: TC.typecheck<FileSystemItem> =
+  TC.chkObjectOfType(
+    {
+      file: TC.isString,
+      date: TC.isString,
+      size: chkIdlU64,
+      type: TC.isString,
+    },
+    {},
+  );
+
+export type FolderContents = FileSystemItem[];
+export const chkFolderContents = TC.chkArrayOf(chkFileSystemItem);
 
 // End of generated code

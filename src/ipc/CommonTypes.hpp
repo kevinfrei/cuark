@@ -835,6 +835,9 @@ enum class IpcCall : std::uint8_t {
   AsyncData = 9,
   MenuAction = 10,
   ShowOpenDialog = 11,
+  GetFileSystemRoots = 12,
+  GetNamedLocations = 13,
+  GetFolderContents = 14,
 };
 
 inline constexpr bool is_valid(IpcCall _value) {
@@ -851,6 +854,9 @@ inline constexpr bool is_valid(IpcCall _value) {
     case IpcCall::AsyncData:
     case IpcCall::MenuAction:
     case IpcCall::ShowOpenDialog:
+    case IpcCall::GetFileSystemRoots:
+    case IpcCall::GetNamedLocations:
+    case IpcCall::GetFolderContents:
       return true;
     default:
       return false;
@@ -883,6 +889,12 @@ inline constexpr std::string_view to_name(IpcCall _value) {
       return "MenuAction";
     case IpcCall::ShowOpenDialog:
       return "ShowOpenDialog";
+    case IpcCall::GetFileSystemRoots:
+      return "GetFileSystemRoots";
+    case IpcCall::GetNamedLocations:
+      return "GetNamedLocations";
+    case IpcCall::GetFolderContents:
+      return "GetFolderContents";
     default:
       return "<unknown>";
   }
@@ -914,6 +926,12 @@ inline constexpr std::string_view to_string(IpcCall _value) {
       return "10";
     case IpcCall::ShowOpenDialog:
       return "11";
+    case IpcCall::GetFileSystemRoots:
+      return "12";
+    case IpcCall::GetNamedLocations:
+      return "13";
+    case IpcCall::GetFolderContents:
+      return "14";
     default:
       return "<unknown>";
   }
@@ -1051,6 +1069,19 @@ struct OpenDialogOptions {
   std::optional<bool> multiSelections;
   std::optional<std::vector<FileFilterItem>> filters;
 };
+
+struct NamedLocation {
+  std::string name;
+  std::string path;
+};
+
+struct FileSystemItem {
+  std::string file;
+  std::string date;
+  std::uint64_t size;
+  std::string type;
+};
+using FolderContents = std::vector<FileSystemItem>;
 
 } // namespace Shared
 #pragma region JSON serialization for string enum Keys
@@ -1274,3 +1305,95 @@ from_json<Shared::OpenDialogOptions>(const crow::json::rvalue& _value) {
   return _res;
 }
 #pragma endregion JSON serialization for object OpenDialogOptions
+
+#pragma region JSON serialization for object NamedLocation
+template <>
+struct impl_to_json<Shared::NamedLocation> {
+  static inline crow::json::wvalue process(
+      const Shared::NamedLocation& _value) {
+    crow::json::wvalue _res;
+    _res["name"] = to_json(_value.name);
+    _res["path"] = to_json(_value.path);
+
+    return _res;
+  }
+};
+
+template <>
+inline std::optional<Shared::NamedLocation> from_json<Shared::NamedLocation>(
+    const crow::json::rvalue& _value) {
+  if (_value.t() != crow::json::type::Object)
+    return std::nullopt;
+  Shared::NamedLocation _res;
+
+  if (!_value.has("name"))
+    return std::nullopt;
+  auto _name_opt_ = from_json<std::string>(_value["name"]);
+  if (!_name_opt_.has_value())
+    return std::nullopt;
+  _res.name = std::move(*_name_opt_);
+
+  if (!_value.has("path"))
+    return std::nullopt;
+  auto _path_opt_ = from_json<std::string>(_value["path"]);
+  if (!_path_opt_.has_value())
+    return std::nullopt;
+  _res.path = std::move(*_path_opt_);
+
+  return _res;
+}
+#pragma endregion JSON serialization for object NamedLocation
+
+#pragma region JSON serialization for object FileSystemItem
+template <>
+struct impl_to_json<Shared::FileSystemItem> {
+  static inline crow::json::wvalue process(
+      const Shared::FileSystemItem& _value) {
+    crow::json::wvalue _res;
+    _res["file"] = to_json(_value.file);
+    _res["date"] = to_json(_value.date);
+    _res["size"] = to_json(_value.size);
+    _res["type"] = to_json(_value.type);
+
+    return _res;
+  }
+};
+
+template <>
+inline std::optional<Shared::FileSystemItem> from_json<Shared::FileSystemItem>(
+    const crow::json::rvalue& _value) {
+  if (_value.t() != crow::json::type::Object)
+    return std::nullopt;
+  Shared::FileSystemItem _res;
+
+  if (!_value.has("file"))
+    return std::nullopt;
+  auto _file_opt_ = from_json<std::string>(_value["file"]);
+  if (!_file_opt_.has_value())
+    return std::nullopt;
+  _res.file = std::move(*_file_opt_);
+
+  if (!_value.has("date"))
+    return std::nullopt;
+  auto _date_opt_ = from_json<std::string>(_value["date"]);
+  if (!_date_opt_.has_value())
+    return std::nullopt;
+  _res.date = std::move(*_date_opt_);
+
+  if (!_value.has("size"))
+    return std::nullopt;
+  auto _size_opt_ = from_json<std::uint64_t>(_value["size"]);
+  if (!_size_opt_.has_value())
+    return std::nullopt;
+  _res.size = std::move(*_size_opt_);
+
+  if (!_value.has("type"))
+    return std::nullopt;
+  auto _type_opt_ = from_json<std::string>(_value["type"]);
+  if (!_type_opt_.has_value())
+    return std::nullopt;
+  _res.type = std::move(*_type_opt_);
+
+  return _res;
+}
+#pragma endregion JSON serialization for object FileSystemItem
