@@ -66,6 +66,7 @@
   "dependencies": {
     "@fluentui/react": "^8.125.6",
     "@fluentui/react-components": "^9.73.8",
+    "@fluentui/react-icons": "^2.0.328",
     "@fluentui/react-icons-mdl2": "^1.4.6",
     "@freik/fluentui-tools": "^1.2.10",
     "@freik/logger": "^0.4.10",
@@ -82,7 +83,7 @@
     "@freik/ts-cpp-tooling": "^0.6.1",
     "@freik/workspace": "^0.8.1",
     "@types/bun": "^1.3.14",
-    "@types/react": "19.2.14",
+    "@types/react": "19.2.15",
     "@types/react-dom": "19.2.3",
     "clang-format": "^1.8.0",
     "lint-staged": "^17.0.5",
