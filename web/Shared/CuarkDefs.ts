@@ -5,6 +5,7 @@ import {
   enum_lst,
   enum_num,
   enum_str,
+  map,
   NEnum,
   num,
   obj,
@@ -87,7 +88,7 @@ const OpenDialogOptions = obj({
   filters: opt(arr(ref('FileFilterItem'))),
 });
 
-const NamedLocation = obj({ name: str(), path: str() });
+const NamedLocations = map(str(), str());
 
 const FileSystemItem = obj({
   file: str(),
@@ -108,7 +109,7 @@ export const TypesToGenerate: Record<string, Types> = {
   MimeData,
   FileFilterItem,
   OpenDialogOptions,
-  NamedLocation,
+  NamedLocations,
   FileSystemItem,
   FolderContents,
 };

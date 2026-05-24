@@ -1,6 +1,7 @@
 import { Expandable } from '@freik/fluentui-tools';
-import { ReactElement } from 'react';
+import { ReactElement, Suspense } from 'react';
 
+import { ErrorBoundary } from '../../Tools/Utilities';
 import { FolderChooser } from '../Dialogs/FolderChooser';
 import './styles/Tools.css';
 
@@ -13,7 +14,11 @@ export function ToolsView(): ReactElement {
       <Expandable separator label="Hidden Tool">
         <div>Put some less commonly used tool thing in here.</div>
       </Expandable>
-      <FolderChooser />
+      <ErrorBoundary>
+        <Suspense fallback={<p>Loading file system shit...</p>}>
+          <FolderChooser />
+        </Suspense>
+      </ErrorBoundary>
     </div>
   );
 }

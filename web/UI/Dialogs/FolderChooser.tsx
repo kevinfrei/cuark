@@ -16,7 +16,23 @@ import {
 } from '@fluentui/react-components';
 import { OptionsRegular, SlideGrid20Filled } from '@fluentui/react-icons';
 import { BackIcon, ForwardIcon } from '@fluentui/react-icons-mdl2';
-import { ReactElement, useState } from 'react';
+import {
+  chkArrayOf,
+  isArrayOfString,
+  isMapOfStrings,
+  isUndefined,
+} from '@freik/typechk';
+import { ReactElement, use, useState } from 'react';
+import {
+  chkFolderContents,
+  chkNamedLocation,
+  chkNamedLocations,
+  FileSystemItem,
+  IpcCall,
+  NamedLocation,
+  NamedLocations,
+} from '../../Shared/CommonTypes';
+import { CallMain, CallMainThrow } from '../../Tools/Ipc';
 
 const useStyles = makeStyles({
   surface: {
@@ -83,10 +99,36 @@ const useStyles = makeStyles({
   },
 });
 
+async function GetFavorites(): Promise<NamedLocations> {
+  return await CallMainThrow(IpcCall.GetNamedLocations, chkNamedLocations);
+}
+
+async function GetRootLocations(): Promise<string[]> {
+  return await CallMainThrow(IpcCall.GetFileSystemRoots, isArrayOfString);
+}
+
+async function GetFolderContents(filePath: string): Promise<FileSystemItem[]> {
+  return await CallMainThrow(
+    IpcCall.GetFolderContents,
+    chkFolderContents,
+    filePath,
+  );
+}
+
+const columns = [
+  { colKey: 'filename', label: 'File Name' },
+  { colKey: 'size', label: 'Size' },
+  { colKey: 'date', label: 'Date Modified' },
+  { colKey: 'kind', label: 'Type' },
+];
+
 export function FolderChooser(props: {}): ReactElement {
-  const locations = ['C:\\', 'D:\\'];
-  const favorites = ['Home', 'Downloads', 'Music', 'Pictures', 'Videos'];
-  const [curFolder, setCurFolder] = useState<string>('C:\\Users\\freik');
+  const locations = use(GetRootLocations());
+  const favorites = use(GetFavorites());
+  const [curFolder, setCurFolder] = useState<string>(
+    favorites.get('home') || '',
+  );
+  const data = use(GetFolderContents(curFolder));
   const classes = useStyles();
   const surfaceClassName = mergeClasses(classes.surface);
   const bodyClassName = mergeClasses(classes.body);
@@ -101,26 +143,6 @@ export function FolderChooser(props: {}): ReactElement {
   const newClassName = mergeClasses(classes.new);
   const cancelClassName = mergeClasses(classes.cancel);
   const selectClassName = mergeClasses(classes.select);
-  const columns = [
-    { colKey: 'filename', label: 'File Name' },
-    { colKey: 'size', label: 'Size' },
-    { colKey: 'date', label: 'Date Modified' },
-    { colKey: 'kind', label: 'Type' },
-  ];
-  const data = [
-    {
-      filename: 'MyFile1.txt',
-      size: 153,
-      date: new Date('Aug 6 1993'),
-      kind: 'Text File',
-    },
-    {
-      filename: 'MyFile2.png',
-      size: 2468,
-      date: new Date('Aug 22 1998'),
-      kind: 'PNG Image',
-    },
-  ];
   return (
     <Dialog>
       <DialogTrigger>
@@ -135,8 +157,10 @@ export function FolderChooser(props: {}): ReactElement {
             ))}
             <div>
               <h4>Favorites</h4>
-              {favorites.map((fav) => (
-                <div key={fav}>{fav}</div>
+              {[...favorites.entries()].map(([key, val]) => (
+                <div key={key}>
+                  {key}: {val.substring(val.length - Math.min(5, val.length))}
+                </div>
               ))}
             </div>
           </div>
@@ -156,10 +180,10 @@ export function FolderChooser(props: {}): ReactElement {
             <TableBody>
               {data.map((val) => (
                 <TableRow>
-                  <TableCell>{val.filename}</TableCell>
+                  <TableCell>{val.file}</TableCell>
                   <TableCell>{val.size}</TableCell>
-                  <TableCell>{val.date.toDateString()}</TableCell>
-                  <TableCell>{val.kind}</TableCell>
+                  <TableCell>{val.date}</TableCell>
+                  <TableCell>{val.type}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

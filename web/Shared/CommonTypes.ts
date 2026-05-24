@@ -151,17 +151,8 @@ export const chkOpenDialogOptions: TC.typecheck<OpenDialogOptions> =
     },
   );
 
-export type NamedLocation = {
-  name: string;
-  path: string;
-};
-export const chkNamedLocation: TC.typecheck<NamedLocation> = TC.chkObjectOfType(
-  {
-    name: TC.isString,
-    path: TC.isString,
-  },
-  {},
-);
+export type NamedLocations = Map<string, string>;
+export const chkNamedLocations = TC.chkMapOf(TC.isString, TC.isString);
 
 export type FileSystemItem = {
   file: string;

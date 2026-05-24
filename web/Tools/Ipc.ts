@@ -8,6 +8,7 @@ import {
   isNumberOrString,
   isObjectNonNull,
   isString,
+  isUndefined,
   Pickle,
   SafelyUnpickle,
   typecheck,
@@ -337,13 +338,13 @@ async function Get(endpoint: IpcCall, ...args: unknown[]): Promise<unknown> {
   let response: Response | undefined;
   try {
     response = await fetch('/api/' + path, { method: 'GET' });
-    err('response from /api/${path}', response);
     if (response.ok) {
       const contentType = response.headers.get('Content-Type');
       const isJson = contentType && contentType.includes('json');
       const isText = contentType && contentType.includes('text');
       if (isJson || isText) {
         const txt = await response.text();
+        err(`response from /api/${path}:${txt}`);
         if (txt.length === 0) {
           return undefined;
         }
@@ -369,6 +370,25 @@ async function Get(endpoint: IpcCall, ...args: unknown[]): Promise<unknown> {
     error: `Failed to fetch ${endpoint} with args: ${args.join(', ')}`,
     response,
   };
+}
+
+async function GetAsThrow<T>(
+  validator: typecheck<T>,
+  endpoint: IpcCall,
+  ...args: unknown[]
+): Promise<T> {
+  const res = await Get(endpoint, ...args);
+  let msg = '';
+  if (isString(res)) {
+    const typedVal = SafelyUnpickle(res, validator);
+    if (!isUndefined(typedVal)) {
+      return typedVal;
+    }
+    msg = `: Invalid Return Value: ${res}`;
+  }
+  msg = `Failed to unpickle response from Get(${endpoint}, ${args.join(', ')})${msg}`;
+  console.error(msg);
+  throw new Error(msg);
 }
 
 async function GetAs<T>(
@@ -428,6 +448,24 @@ export async function CallMain<T>(
   ...args: unknown[]
 ): Promise<T | undefined> {
   return await GetAs(typecheck, channel, ...args);
+}
+
+/**
+ * @async
+ * Call a remote function with type checking on the return value.
+ * If you have no return type, use {@link PostMainThrow} instead.
+ *
+ * @param channel The channel to send a message to
+ * @param typecheck The typecheck function to validate the return type R
+ * @param args The data to communicate to the channel (if any)
+ * @returns A promise that resolves to the typechecked return value of the RPC
+ */
+export async function CallMainThrow<T>(
+  channel: IpcCall,
+  typecheck: typecheck<T>,
+  ...args: unknown[]
+): Promise<T> {
+  return GetAsThrow(typecheck, channel, ...args);
 }
 
 export async function PostMain(

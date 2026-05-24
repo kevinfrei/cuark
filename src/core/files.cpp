@@ -1,3 +1,5 @@
+#include <chrono>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -5,8 +7,10 @@
 #include <crow/http_response.h>
 #include <crow/logging.h>
 #include <portable-file-dialogs.h>
+#include <sago/platform_folders.h>
 
 #include "CommonTypes.hpp"
+#include "file_tools.hpp"
 #include "tools.hpp"
 
 #include "files.hpp"
@@ -399,6 +403,75 @@ void folder_picker(crow::response& resp, std::string_view data) {
     resp.code = 200; // OK
   }
   */
+}
+
+std::vector<std::string> get_file_system_roots() {
+  std::vector<std::string> res;
+  for (auto& i : drive_range{}) {
+    res.emplace_back(i.native());
+  }
+  return res;
+}
+
+std::map<std::string, std::string> get_named_locations() {
+  std::map<std::string, std::string> res;
+  res.emplace("Home", sago::getDataHome());
+  res.emplace("Documents", sago::getDocumentsFolder());
+  res.emplace("Downloads", sago::getDownloadFolder());
+  res.emplace("Music", sago::getMusicFolder());
+  res.emplace("Video", sago::getVideoFolder());
+  res.emplace("Desktop", sago::getDesktopFolder());
+  res.emplace("Pictures", sago::getPicturesFolder());
+  return res;
+}
+
+std::string get_type(const std::filesystem::directory_entry& i) {
+  if (i.is_directory()) {
+    return "directory";
+  }
+  if (i.is_symlink()) {
+    return "symlink";
+  }
+  if (i.is_regular_file()) {
+    return "file";
+  }
+  return "other";
+}
+
+std::string date_string(const fs::file_time_type& ftime) {
+  using namespace std::chrono;
+  // Get the current time for both clocks
+  auto sys_now = system_clock::now();
+  auto file_now = std::filesystem::file_time_type::clock::now();
+  // Convert file_time_type to system_clock::time_point
+  auto sys_time =
+      time_point_cast<system_clock::duration>(ftime - file_now + sys_now);
+  // Convert to std::time_t and then to string
+  std::time_t cftime = system_clock::to_time_t(sys_time);
+  return std::asctime(std::localtime(&cftime));
+}
+
+std::vector<Shared::FileSystemItem> get_folder_contents(
+    std::string_view file_path) {
+  std::vector<Shared::FileSystemItem> res;
+  fs::path dir_path = file_path; // Current directory
+  try {
+    for (const auto& entry : fs::directory_iterator(dir_path)) {
+      try {
+        Shared::FileSystemItem fsi;
+        fsi.file = entry.path().native();
+        fsi.size = entry.file_size();
+        fsi.type = get_type(entry);
+        fsi.date = date_string(entry.last_write_time());
+        res.emplace_back(fsi);
+      } catch (const fs::filesystem_error& e) {
+        std::cerr << e.what() << '\n';
+      }
+    }
+  } catch (const fs::filesystem_error& e) {
+    std::cerr << e.what() << '\n';
+  }
+  return res;
 }
 
 } // namespace files

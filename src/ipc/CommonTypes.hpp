@@ -1069,11 +1069,7 @@ struct OpenDialogOptions {
   std::optional<bool> multiSelections;
   std::optional<std::vector<FileFilterItem>> filters;
 };
-
-struct NamedLocation {
-  std::string name;
-  std::string path;
-};
+using NamedLocations = std::map<std::string, std::string>;
 
 struct FileSystemItem {
   std::string file;
@@ -1305,44 +1301,6 @@ from_json<Shared::OpenDialogOptions>(const crow::json::rvalue& _value) {
   return _res;
 }
 #pragma endregion JSON serialization for object OpenDialogOptions
-
-#pragma region JSON serialization for object NamedLocation
-template <>
-struct impl_to_json<Shared::NamedLocation> {
-  static inline crow::json::wvalue process(
-      const Shared::NamedLocation& _value) {
-    crow::json::wvalue _res;
-    _res["name"] = to_json(_value.name);
-    _res["path"] = to_json(_value.path);
-
-    return _res;
-  }
-};
-
-template <>
-inline std::optional<Shared::NamedLocation> from_json<Shared::NamedLocation>(
-    const crow::json::rvalue& _value) {
-  if (_value.t() != crow::json::type::Object)
-    return std::nullopt;
-  Shared::NamedLocation _res;
-
-  if (!_value.has("name"))
-    return std::nullopt;
-  auto _name_opt_ = from_json<std::string>(_value["name"]);
-  if (!_name_opt_.has_value())
-    return std::nullopt;
-  _res.name = std::move(*_name_opt_);
-
-  if (!_value.has("path"))
-    return std::nullopt;
-  auto _path_opt_ = from_json<std::string>(_value["path"]);
-  if (!_path_opt_.has_value())
-    return std::nullopt;
-  _res.path = std::move(*_path_opt_);
-
-  return _res;
-}
-#pragma endregion JSON serialization for object NamedLocation
 
 #pragma region JSON serialization for object FileSystemItem
 template <>
