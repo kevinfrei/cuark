@@ -99,20 +99,53 @@ const useStyles = makeStyles({
   },
 });
 
-async function GetFavorites(): Promise<NamedLocations> {
-  return await CallMainThrow(IpcCall.GetNamedLocations, chkNamedLocations);
+let cachedNL: NamedLocations | null = null;
+async function GetFavorites(skipCache?: boolean): Promise<NamedLocations> {
+  while (cachedNL === null || skipCache) {
+    cachedNL = await CallMainThrow(
+      IpcCall.GetNamedLocations,
+      chkNamedLocations,
+    );
+    skipCache = false;
+  }
+  return cachedNL;
 }
 
-async function GetRootLocations(): Promise<string[]> {
-  return await CallMainThrow(IpcCall.GetFileSystemRoots, isArrayOfString);
+let cachedRoots: null | string[] = null;
+async function GetRootLocations(skipCache?: boolean): Promise<string[]> {
+  while (cachedRoots === null || skipCache) {
+    cachedRoots = await CallMainThrow(
+      IpcCall.GetFileSystemRoots,
+      isArrayOfString,
+    );
+    skipCache = false;
+  }
+  return cachedRoots;
 }
 
-async function GetFolderContents(filePath: string): Promise<FileSystemItem[]> {
-  return await CallMainThrow(
-    IpcCall.GetFolderContents,
-    chkFolderContents,
-    filePath,
-  );
+const cachedFC = new Map<string, FileSystemItem[]>();
+async function GetFolderContents(
+  filePath: string,
+  skipCache?: boolean,
+): Promise<FileSystemItem[]> {
+  if (filePath.length === 0) {
+    return [];
+  }
+  let val: undefined | FileSystemItem[] = undefined;
+  do {
+    val = cachedFC.get(filePath);
+    if (!val || skipCache) {
+      cachedFC.set(
+        filePath,
+        await CallMainThrow(
+          IpcCall.GetFolderContents,
+          chkFolderContents,
+          filePath,
+        ),
+      );
+    }
+  } while (val === undefined);
+  return val;
 }
 
 const columns = [
@@ -126,7 +159,7 @@ export function FolderChooser(props: {}): ReactElement {
   const locations = use(GetRootLocations());
   const favorites = use(GetFavorites());
   const [curFolder, setCurFolder] = useState<string>(
-    favorites.get('home') || '',
+    favorites.get('Home') || '',
   );
   const data = use(GetFolderContents(curFolder));
   const classes = useStyles();
@@ -153,13 +186,15 @@ export function FolderChooser(props: {}): ReactElement {
           <div className={placesClassName}>
             <h4>Locations</h4>
             {locations.map((loc) => (
-              <div key={loc}>{loc}</div>
+              <div key={loc} onClick={() => setCurFolder(loc)}>
+                {loc}
+              </div>
             ))}
             <div>
               <h4>Favorites</h4>
               {[...favorites.entries()].map(([key, val]) => (
-                <div key={key}>
-                  {key}: {val.substring(val.length - Math.min(5, val.length))}
+                <div key={key} onClick={() => setCurFolder(val)}>
+                  {key}
                 </div>
               ))}
             </div>

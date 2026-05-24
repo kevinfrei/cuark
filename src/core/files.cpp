@@ -415,7 +415,7 @@ std::vector<std::string> get_file_system_roots() {
 
 std::map<std::string, std::string> get_named_locations() {
   std::map<std::string, std::string> res;
-  res.emplace("Home", sago::getDataHome());
+  res.emplace("Home", files::get_home_dir());
   res.emplace("Documents", sago::getDocumentsFolder());
   res.emplace("Downloads", sago::getDownloadFolder());
   res.emplace("Music", sago::getMusicFolder());
@@ -459,7 +459,7 @@ std::vector<Shared::FileSystemItem> get_folder_contents(
     for (const auto& entry : fs::directory_iterator(dir_path)) {
       try {
         Shared::FileSystemItem fsi;
-        fsi.file = entry.path().native();
+        fsi.file = entry.path().filename().native();
         fsi.size = entry.file_size();
         fsi.type = get_type(entry);
         fsi.date = date_string(entry.last_write_time());

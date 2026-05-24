@@ -334,7 +334,6 @@ function encodeForCall(arg: unknown): string {
 
 async function Get(endpoint: IpcCall, ...args: unknown[]): Promise<unknown> {
   const path = [endpoint.toString(10), ...args.map(encodeForCall)].join('/');
-  log(`Fetching from /api/${path}`);
   let response: Response | undefined;
   try {
     response = await fetch('/api/' + path, { method: 'GET' });
@@ -344,7 +343,7 @@ async function Get(endpoint: IpcCall, ...args: unknown[]): Promise<unknown> {
       const isText = contentType && contentType.includes('text');
       if (isJson || isText) {
         const txt = await response.text();
-        err(`response from /api/${path}:${txt}`);
+        // err(`response from /api/${path}:${txt}`);
         if (txt.length === 0) {
           return undefined;
         }

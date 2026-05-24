@@ -1,4 +1,7 @@
+#include <cstdlib>
 #include <filesystem>
+#include <iostream>
+#include <string>
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -31,6 +34,19 @@ void root_iterator::populate_roots(bool include_empty) {
       m_roots.emplace_back(drive);
     }
   }
+}
+
+std::string get_home_dir() {
+  const char* userprofile = std::getenv("USERPROFILE");
+  if (userprofile != nullptr) {
+    return userprofile;
+  }
+  const char* drive = std::getenv("HOMEDRIVE");
+  const char* path = std::getenv("HOMEPATH");
+  if (drive != nullptr && path != nullptr) {
+    return std::string(drive) + path;
+  }
+  return ""; // Failed to retrieve
 }
 
 } // namespace files
