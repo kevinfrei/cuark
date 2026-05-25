@@ -17,6 +17,10 @@ function chkIdlU64(v: unknown): v is number {
   return TC.isBigInt(v) && BigInt.asUintN(64, v) === v;
 }
 
+function chkIdlDouble(v: unknown): v is number {
+  return TC.isNumber(v) && !Number.isNaN(v) && Number.isFinite(v);
+}
+
 function chkOptional<T>(chk: TC.typecheck<T>): TC.typecheck<T | undefined> {
   return (v: unknown): v is T | undefined => v === undefined || chk(v);
 }
@@ -156,7 +160,7 @@ export const chkNamedLocations = TC.chkMapOf(TC.isString, TC.isString);
 
 export type FileSystemItem = {
   file: string;
-  date: string;
+  date: number;
   size: bigint;
   type: string;
 };
@@ -164,7 +168,7 @@ export const chkFileSystemItem: TC.typecheck<FileSystemItem> =
   TC.chkObjectOfType(
     {
       file: TC.isString,
-      date: TC.isString,
+      date: chkIdlDouble,
       size: chkIdlU64,
       type: TC.isString,
     },

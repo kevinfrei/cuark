@@ -1,6 +1,7 @@
 import {
   arr,
   bool,
+  dbl,
   Enum,
   enum_lst,
   enum_num,
@@ -92,7 +93,7 @@ const NamedLocations = map(str(), str());
 
 const FileSystemItem = obj({
   file: str(),
-  date: str(),
+  date: dbl(),
   size: u64(),
   type: str(),
 });

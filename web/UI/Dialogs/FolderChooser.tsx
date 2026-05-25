@@ -1,27 +1,36 @@
-import { DialogContent } from '@fluentui/react';
 import {
   Button,
+  createTableColumn,
+  DataGrid,
+  DataGridBody,
+  DataGridCell,
+  DataGridHeader,
+  DataGridHeaderCell,
+  DataGridProps,
+  DataGridRow,
   Dialog,
   DialogBody,
   DialogSurface,
   DialogTrigger,
   makeStyles,
-  mergeClasses,
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableHeaderCell,
-  TableRow,
+  Menu,
+  MenuButton,
+  MenuDivider,
+  MenuItemCheckbox,
+  MenuItemRadio,
+  MenuList,
+  MenuPopover,
+  MenuTrigger,
+  TableColumnDefinition,
 } from '@fluentui/react-components';
-import { OptionsRegular, SlideGrid20Filled } from '@fluentui/react-icons';
-import { BackIcon, ForwardIcon } from '@fluentui/react-icons-mdl2';
 import {
-  chkArrayOf,
-  isArrayOfString,
-  isMapOfStrings,
-  isUndefined,
-} from '@freik/typechk';
+  ChevronDown20Filled,
+  ChevronLeft20Filled,
+  ChevronRight20Filled,
+  OptionsRegular,
+} from '@fluentui/react-icons';
+import { isArrayOfString } from '@freik/typechk';
+import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
   ReactElement,
   Suspense,
@@ -37,36 +46,38 @@ import {
   IpcCall,
   NamedLocations,
 } from '../../Shared/CommonTypes';
-import { CallMain, CallMainThrow } from '../../Tools/Ipc';
+import { CallMainThrow } from '../../Tools/Ipc';
+
+const currentLocation = atom('');
 
 const useStyles = makeStyles({
   surface: {
     height: '90vh',
-    width: '90vw',
+    minWidth: '90vw',
   },
   body: {
     height: '100%',
     display: 'grid',
     gridTemplateRows: '30px auto 30px',
-    gridTemplateColumns: '120px 40px 40px 40px auto 40px',
+    gridTemplateColumns: '120px 25px 25px 30px auto',
   },
   places: {
     gridRow: '1 / span 3',
     gridColumn: 1,
+    overflow: 'clip',
   },
   content: {
     gridRow: '2',
-    gridColumn: '2 / span 5',
+    gridColumn: '2 / span 4',
+    overflow: 'auto',
   },
   back: {
     gridRow: '1',
     gridColumn: '2',
-    fontSize: 'small',
   },
   fwd: {
     gridRow: '1',
     gridColumn: '3',
-    fontSize: 'small',
   },
   opt: {
     gridRow: '1',
@@ -77,16 +88,12 @@ const useStyles = makeStyles({
     gridRow: '1',
     gridColumn: '5',
     fontSize: 'small',
-  },
-  view: {
-    gridRow: '1',
-    gridColumn: '6',
-    fontSize: 'small',
+    margin: '5px',
   },
   actions: {
     display: 'grid',
     gridRow: '3',
-    gridColumn: '2 / span 5',
+    gridColumn: '2 / span 4',
     gridTemplateRows: 'auto',
     gridTemplateColumns: '110px auto 100px 100px',
   },
@@ -153,102 +160,239 @@ async function GetFolderContents(
   return val;
 }
 
-const columns = [
-  { colKey: 'filename', label: 'File Name' },
-  { colKey: 'size', label: 'Size' },
-  { colKey: 'date', label: 'Date Modified' },
-  { colKey: 'kind', label: 'Type' },
-];
+function LocationsList(): ReactElement {
+  const locations = use(GetRootLocations());
+  const [curLoc, setCurLoc] = useAtom(currentLocation);
+  return (
+    <>
+      {locations.map((loc) => {
+        if (curLoc === loc) {
+          return (
+            <div key={loc} style={{ fontWeight: 'bold' }}>
+              {loc}
+            </div>
+          );
+        } else {
+          return (
+            <div key={loc} onClick={() => setCurLoc(loc)}>
+              {loc}
+            </div>
+          );
+        }
+      })}
+    </>
+  );
+}
+
+function FavoritesList(): ReactElement {
+  const favorites = use(GetFavorites());
+  const [curLoc, setCurLoc] = useAtom(currentLocation);
+  return (
+    <>
+      {[...favorites.entries()].map(([key, val]) => {
+        if (curLoc === val) {
+          return (
+            <div key={key} style={{ fontWeight: 'bold' }}>
+              {key}
+            </div>
+          );
+        } else {
+          return (
+            <div key={key} onClick={() => setCurLoc(val)}>
+              {key}
+            </div>
+          );
+        }
+      })}
+    </>
+  );
+}
 
 type FilePlacesProps = {
-  onSelect: (loc: string) => void;
   className: string;
 };
 
-function FilePlaces({ onSelect, className }: FilePlacesProps): ReactElement {
-  const locations = use(GetRootLocations());
-  const favorites = use(GetFavorites());
+function FilePlaces({ className }: FilePlacesProps): ReactElement {
   return (
     <div className={className}>
-      <div key={'locations-header'} style={{ fontWeight: 'bold' }}>
+      <div
+        key={'locations-header'}
+        style={{ fontWeight: 'bold', fontSize: 'larger' }}>
         Locations
       </div>
-      {locations.map((loc) => (
-        <div key={loc} onClick={() => onSelect(loc)}>
-          {loc}
-        </div>
-      ))}
-      <div key="favorites=header" style={{ fontWeight: 'bold' }}>
+      <Suspense>
+        <LocationsList />
+      </Suspense>
+      <div
+        key="favorites-header"
+        style={{ fontWeight: 'bold', fontSize: 'larger', marginTop: '1em' }}>
         Favorites
       </div>
-      {[...favorites.entries()].map(([key, val]) => (
-        <div key={key} onClick={() => onSelect(val)}>
-          {key}
-        </div>
-      ))}
+      <Suspense>
+        <FavoritesList />
+      </Suspense>
     </div>
   );
 }
 
+function Location(): ReactElement {
+  const classes = useStyles();
+  const curLocVal = useAtomValue(currentLocation);
+  return <div className={classes.cur}>{curLocVal}</div>;
+}
+
+function FileFolderPickerHeader(): ReactElement {
+  const classes = useStyles();
+  return (
+    <>
+      <Button className={classes.back} icon={<ChevronLeft20Filled />} />
+      <Button className={classes.fwd} icon={<ChevronRight20Filled />} />
+      <Menu>
+        <MenuTrigger>
+          <MenuButton
+            className={classes.opt}
+            icon={
+              <>
+                <OptionsRegular />
+                <ChevronDown20Filled />
+              </>
+            }
+            size="large"
+          />
+        </MenuTrigger>
+        <MenuPopover>
+          <MenuList>
+            <MenuItemCheckbox name="sidebar" value="true">
+              Show Sidebar
+            </MenuItemCheckbox>
+            <MenuDivider />
+            <MenuItemCheckbox name="hidden" value="false">
+              Show hidden files
+            </MenuItemCheckbox>
+            <MenuItemCheckbox name="extensions" value="true">
+              Show file extensions
+            </MenuItemCheckbox>
+            <MenuDivider />
+            <MenuItemRadio name="view" value="icons" persistOnClick={true}>
+              View as Icons
+            </MenuItemRadio>
+            <MenuItemRadio name="view" value="list" persistOnClick={true}>
+              View as List
+            </MenuItemRadio>
+          </MenuList>
+        </MenuPopover>
+      </Menu>
+      <Location />
+    </>
+  );
+}
+
+function FileFolderPickerFooter(): ReactElement {
+  const classes = useStyles();
+  return (
+    <div className={classes.actions}>
+      <Button className={classes.new} appearance="secondary">
+        New Folder
+      </Button>
+      <Button className={classes.cancel} appearance="secondary">
+        Cancel
+      </Button>
+      <DialogTrigger disableButtonEnhancement>
+        <Button className={classes.select}>Select</Button>
+      </DialogTrigger>
+    </div>
+  );
+}
+
+const columns: TableColumnDefinition<FileSystemItem>[] = [
+  createTableColumn<FileSystemItem>({
+    columnId: 'file',
+    compare: (a, b) => a.file.localeCompare(b.file),
+    renderHeaderCell: () => 'File Name',
+    renderCell: (item) => item.file,
+  }),
+  createTableColumn<FileSystemItem>({
+    columnId: 'size',
+    compare: (a, b) => (a.size < b.size ? -1 : a.size > b.size ? 1 : 0),
+    renderHeaderCell: () => 'File Size',
+    renderCell: (item) => (item.type === 'directory' ? '' : item.size),
+  }),
+  createTableColumn<FileSystemItem>({
+    columnId: 'date',
+    compare: (a, b) => a.date - b.date,
+    renderHeaderCell: () => 'Date',
+    // item.date is millisecondcs since epoch, so we can create a Date object from it and format it as needed
+    renderCell: (item) => new Date(item.date).toLocaleString(),
+  }),
+  createTableColumn<FileSystemItem>({
+    columnId: 'type',
+    compare: (a, b) => a.type.localeCompare(b.type),
+    renderHeaderCell: (data) => 'Type',
+    renderCell: (item) => item.type,
+  }),
+];
+
+function FileFolderPickerContent(): ReactElement {
+  const curLocVal = useAtomValue(currentLocation);
+  const data = use(GetFolderContents(curLocVal));
+  const classes = useStyles();
+  const defaultSortState = useMemo<
+    Parameters<NonNullable<DataGridProps['onSortChange']>>[1]
+  >(() => ({ sortColumn: 'file', sortDirection: 'ascending' }), []);
+
+  const columnSizingOptions = {
+    file: { minWidth: 80, defaultWidth: 120 },
+    size: { minWidth: 10, defaultWidth: 60 },
+    date: { minWidth: 20, defaultWidth: 80 },
+    type: { minWidth: 20, defaultWidth: 60 },
+  };
+
+  return (
+    <DataGrid
+      className={classes.content}
+      items={data}
+      columns={columns}
+      sortable
+      defaultSortState={defaultSortState}
+      style={{ minWidth: '500px' }}
+      size="small"
+      resizableColumns
+      resizableColumnsOptions={{ autoFitColumns: true }}
+      columnSizingOptions={columnSizingOptions}>
+      <DataGridHeader>
+        <DataGridRow>
+          {({ renderHeaderCell }) => (
+            <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+          )}
+        </DataGridRow>
+      </DataGridHeader>
+      <DataGridBody<FileSystemItem>>
+        {({ item, rowId }) => (
+          <DataGridRow<FileSystemItem> key={rowId}>
+            {({ renderCell }) => (
+              <DataGridCell>{renderCell(item)}</DataGridCell>
+            )}
+          </DataGridRow>
+        )}
+      </DataGridBody>
+    </DataGrid>
+  );
+}
+
 type FileFolderPickerProps = {
-  location: string;
   onChangeFolder: (path: string) => void;
 };
 
 function FileFolderPicker({
-  location,
   onChangeFolder,
 }: FileFolderPickerProps): ReactElement {
-  const data = use(GetFolderContents(location));
-  const classes = useStyles();
-  const backClassName = mergeClasses(classes.back);
-  const fwdClassName = mergeClasses(classes.fwd);
-  const optClassName = mergeClasses(classes.opt);
-  const curClassName = mergeClasses(classes.cur);
-  const viewClassName = mergeClasses(classes.view);
-  const contentClassName = mergeClasses(classes.content);
-  const actionsClassName = mergeClasses(classes.actions);
-  const newClassName = mergeClasses(classes.new);
-  const cancelClassName = mergeClasses(classes.cancel);
-  const selectClassName = mergeClasses(classes.select);
-
   return (
     <>
-      <Button className={backClassName} icon={<BackIcon />} />
-      <Button className={fwdClassName} icon={<ForwardIcon />} />
-      <Button className={optClassName} icon={<OptionsRegular />} />
-      <div className={curClassName}>{location}</div>
-      <Button className={viewClassName} icon={<SlideGrid20Filled />} />
-      <Table className={contentClassName}>
-        <TableHeader>
-          <TableRow>
-            {columns.map(({ colKey, label }) => (
-              <TableHeaderCell key={colKey}>{label}</TableHeaderCell>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((val) => (
-            <TableRow>
-              <TableCell>{val.file}</TableCell>
-              <TableCell>{val.size}</TableCell>
-              <TableCell>{val.date}</TableCell>
-              <TableCell>{val.type}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <div className={actionsClassName}>
-        <Button className={newClassName} appearance="secondary">
-          New Folder
-        </Button>
-        <Button className={cancelClassName} appearance="secondary">
-          Cancel
-        </Button>
-        <DialogTrigger disableButtonEnhancement>
-          <Button className={selectClassName}>Select</Button>
-        </DialogTrigger>
-      </div>
+      <FileFolderPickerHeader />
+      <Suspense>
+        <FileFolderPickerContent />
+      </Suspense>
+      <FileFolderPickerFooter />
     </>
   );
 }
@@ -271,15 +415,15 @@ const DelayedFallback = ({
 };
 
 function FileFolderSurface(): ReactElement {
-  const [curFolder, setCurFolder] = useState<string>('');
   const classes = useStyles();
+  const setCurLoc = useSetAtom(currentLocation);
   return (
     <>
       <Suspense>
-        <FilePlaces className={classes.places} onSelect={setCurFolder} />
+        <FilePlaces className={classes.places} />
       </Suspense>
       <Suspense>
-        <FileFolderPicker location={curFolder} onChangeFolder={setCurFolder} />
+        <FileFolderPicker onChangeFolder={setCurLoc} />
       </Suspense>
     </>
   );

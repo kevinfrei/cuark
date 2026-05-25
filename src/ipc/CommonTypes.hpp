@@ -1073,7 +1073,7 @@ using NamedLocations = std::map<std::string, std::string>;
 
 struct FileSystemItem {
   std::string file;
-  std::string date;
+  double date;
   std::uint64_t size;
   std::string type;
 };
@@ -1333,7 +1333,7 @@ inline std::optional<Shared::FileSystemItem> from_json<Shared::FileSystemItem>(
 
   if (!_value.has("date"))
     return std::nullopt;
-  auto _date_opt_ = from_json<std::string>(_value["date"]);
+  auto _date_opt_ = from_json<double>(_value["date"]);
   if (!_date_opt_.has_value())
     return std::nullopt;
   _res.date = std::move(*_date_opt_);

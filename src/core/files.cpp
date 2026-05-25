@@ -438,18 +438,15 @@ std::string get_type(const std::filesystem::directory_entry& i) {
   return "other";
 }
 
-std::string date_string(const fs::file_time_type& ftime) {
-  using namespace std::chrono;
-  // Get the current time for both clocks
-  auto sys_now = system_clock::now();
-  auto file_now = std::filesystem::file_time_type::clock::now();
-  // Convert file_time_type to system_clock::time_point
-  auto sys_time =
-      time_point_cast<system_clock::duration>(ftime - file_now + sys_now);
-  // Convert to std::time_t and then to string
-  std::time_t cftime = system_clock::to_time_t(sys_time);
-  std::string res = std::asctime(std::localtime(&cftime));
-  return res.substr(0, res.size() - 1);
+double get_date_double(const fs::file_time_type& ftime) {
+  // Convert a file_time_type to a double representing milliseconds since the
+  // epoch.
+  auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+      ftime - fs::file_time_type::clock::now() +
+      std::chrono::system_clock::now());
+  return sctp.time_since_epoch().count() /
+         static_cast<double>(std::chrono::system_clock::duration::period::den) *
+         1000;
 }
 
 std::vector<Shared::FileSystemItem> get_folder_contents(
@@ -464,7 +461,7 @@ std::vector<Shared::FileSystemItem> get_folder_contents(
           fsi.file = entry.path().filename().native();
           fsi.type = get_type(entry);
           fsi.size = entry.is_regular_file() ? entry.file_size() : 0;
-          fsi.date = date_string(entry.last_write_time());
+          fsi.date = get_date_double(entry.last_write_time());
           res.emplace_back(fsi);
         }
       } catch (const fs::filesystem_error& e) {
