@@ -22,14 +22,19 @@ import {
   isMapOfStrings,
   isUndefined,
 } from '@freik/typechk';
-import { ReactElement, use, useState } from 'react';
+import {
+  ReactElement,
+  Suspense,
+  use,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   chkFolderContents,
-  chkNamedLocation,
   chkNamedLocations,
   FileSystemItem,
   IpcCall,
-  NamedLocation,
   NamedLocations,
 } from '../../Shared/CommonTypes';
 import { CallMain, CallMainThrow } from '../../Tools/Ipc';
@@ -155,17 +160,47 @@ const columns = [
   { colKey: 'kind', label: 'Type' },
 ];
 
-export function FolderChooser(props: {}): ReactElement {
+type FilePlacesProps = {
+  onSelect: (loc: string) => void;
+  className: string;
+};
+
+function FilePlaces({ onSelect, className }: FilePlacesProps): ReactElement {
   const locations = use(GetRootLocations());
   const favorites = use(GetFavorites());
-  const [curFolder, setCurFolder] = useState<string>(
-    favorites.get('Home') || '',
+  return (
+    <div className={className}>
+      <div key={'locations-header'} style={{ fontWeight: 'bold' }}>
+        Locations
+      </div>
+      {locations.map((loc) => (
+        <div key={loc} onClick={() => onSelect(loc)}>
+          {loc}
+        </div>
+      ))}
+      <div key="favorites=header" style={{ fontWeight: 'bold' }}>
+        Favorites
+      </div>
+      {[...favorites.entries()].map(([key, val]) => (
+        <div key={key} onClick={() => onSelect(val)}>
+          {key}
+        </div>
+      ))}
+    </div>
   );
-  const data = use(GetFolderContents(curFolder));
+}
+
+type FileFolderPickerProps = {
+  location: string;
+  onChangeFolder: (path: string) => void;
+};
+
+function FileFolderPicker({
+  location,
+  onChangeFolder,
+}: FileFolderPickerProps): ReactElement {
+  const data = use(GetFolderContents(location));
   const classes = useStyles();
-  const surfaceClassName = mergeClasses(classes.surface);
-  const bodyClassName = mergeClasses(classes.body);
-  const placesClassName = mergeClasses(classes.places);
   const backClassName = mergeClasses(classes.back);
   const fwdClassName = mergeClasses(classes.fwd);
   const optClassName = mergeClasses(classes.opt);
@@ -176,64 +211,90 @@ export function FolderChooser(props: {}): ReactElement {
   const newClassName = mergeClasses(classes.new);
   const cancelClassName = mergeClasses(classes.cancel);
   const selectClassName = mergeClasses(classes.select);
+
+  return (
+    <>
+      <Button className={backClassName} icon={<BackIcon />} />
+      <Button className={fwdClassName} icon={<ForwardIcon />} />
+      <Button className={optClassName} icon={<OptionsRegular />} />
+      <div className={curClassName}>{location}</div>
+      <Button className={viewClassName} icon={<SlideGrid20Filled />} />
+      <Table className={contentClassName}>
+        <TableHeader>
+          <TableRow>
+            {columns.map(({ colKey, label }) => (
+              <TableHeaderCell key={colKey}>{label}</TableHeaderCell>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.map((val) => (
+            <TableRow>
+              <TableCell>{val.file}</TableCell>
+              <TableCell>{val.size}</TableCell>
+              <TableCell>{val.date}</TableCell>
+              <TableCell>{val.type}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <div className={actionsClassName}>
+        <Button className={newClassName} appearance="secondary">
+          New Folder
+        </Button>
+        <Button className={cancelClassName} appearance="secondary">
+          Cancel
+        </Button>
+        <DialogTrigger disableButtonEnhancement>
+          <Button className={selectClassName}>Select</Button>
+        </DialogTrigger>
+      </div>
+    </>
+  );
+}
+
+const DelayedFallback = ({
+  delay,
+  children,
+}: {
+  delay: number;
+  children: ReactElement;
+}) => {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShow(true), delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  return show ? children : null;
+};
+
+function FileFolderSurface(): ReactElement {
+  const [curFolder, setCurFolder] = useState<string>('');
+  const classes = useStyles();
+  return (
+    <>
+      <Suspense>
+        <FilePlaces className={classes.places} onSelect={setCurFolder} />
+      </Suspense>
+      <Suspense>
+        <FileFolderPicker location={curFolder} onChangeFolder={setCurFolder} />
+      </Suspense>
+    </>
+  );
+}
+
+export function FolderChooser(props: {}): ReactElement {
+  const classes = useStyles();
   return (
     <Dialog>
       <DialogTrigger>
         <Button>Open Folder Chooser</Button>
       </DialogTrigger>
-      <DialogSurface className={surfaceClassName}>
-        <DialogBody className={bodyClassName}>
-          <div className={placesClassName}>
-            <h4>Locations</h4>
-            {locations.map((loc) => (
-              <div key={loc} onClick={() => setCurFolder(loc)}>
-                {loc}
-              </div>
-            ))}
-            <div>
-              <h4>Favorites</h4>
-              {[...favorites.entries()].map(([key, val]) => (
-                <div key={key} onClick={() => setCurFolder(val)}>
-                  {key}
-                </div>
-              ))}
-            </div>
-          </div>
-          <Button className={backClassName} icon={<BackIcon />} />
-          <Button className={fwdClassName} icon={<ForwardIcon />} />
-          <Button className={optClassName} icon={<OptionsRegular />} />
-          <div className={curClassName}>{curFolder}</div>
-          <Button className={viewClassName} icon={<SlideGrid20Filled />} />
-          <Table className={contentClassName}>
-            <TableHeader>
-              <TableRow>
-                {columns.map(({ colKey, label }) => (
-                  <TableHeaderCell key={colKey}>{label}</TableHeaderCell>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((val) => (
-                <TableRow>
-                  <TableCell>{val.file}</TableCell>
-                  <TableCell>{val.size}</TableCell>
-                  <TableCell>{val.date}</TableCell>
-                  <TableCell>{val.type}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div className={actionsClassName}>
-            <Button className={newClassName} appearance="secondary">
-              New Folder
-            </Button>
-            <Button className={cancelClassName} appearance="secondary">
-              Cancel
-            </Button>
-            <DialogTrigger disableButtonEnhancement>
-              <Button className={selectClassName}>Select</Button>
-            </DialogTrigger>
-          </div>
+      <DialogSurface className={classes.surface}>
+        <DialogBody className={classes.body}>
+          <FileFolderSurface />
         </DialogBody>
       </DialogSurface>
     </Dialog>

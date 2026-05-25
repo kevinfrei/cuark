@@ -448,7 +448,8 @@ std::string date_string(const fs::file_time_type& ftime) {
       time_point_cast<system_clock::duration>(ftime - file_now + sys_now);
   // Convert to std::time_t and then to string
   std::time_t cftime = system_clock::to_time_t(sys_time);
-  return std::asctime(std::localtime(&cftime));
+  std::string res = std::asctime(std::localtime(&cftime));
+  return res.substr(0, res.size() - 1);
 }
 
 std::vector<Shared::FileSystemItem> get_folder_contents(
@@ -458,12 +459,14 @@ std::vector<Shared::FileSystemItem> get_folder_contents(
   try {
     for (const auto& entry : fs::directory_iterator(dir_path)) {
       try {
-        Shared::FileSystemItem fsi;
-        fsi.file = entry.path().filename().native();
-        fsi.size = entry.file_size();
-        fsi.type = get_type(entry);
-        fsi.date = date_string(entry.last_write_time());
-        res.emplace_back(fsi);
+        if (!is_hidden_file(entry.path())) {
+          Shared::FileSystemItem fsi;
+          fsi.file = entry.path().filename().native();
+          fsi.type = get_type(entry);
+          fsi.size = entry.is_regular_file() ? entry.file_size() : 0;
+          fsi.date = date_string(entry.last_write_time());
+          res.emplace_back(fsi);
+        }
       } catch (const fs::filesystem_error& e) {
         std::cerr << e.what() << '\n';
       }
