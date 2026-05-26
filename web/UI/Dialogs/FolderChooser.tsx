@@ -20,6 +20,7 @@ import {
   MenuItemRadio,
   MenuList,
   MenuPopover,
+  MenuProps,
   MenuTrigger,
   TableColumnDefinition,
 } from '@fluentui/react-components';
@@ -48,18 +49,26 @@ import {
 } from '../../Shared/CommonTypes';
 import { CallMainThrow } from '../../Tools/Ipc';
 
-const currentLocation = atom('');
+const currentLocationAtom = atom('');
+const sidebarVisibleAtom = atom(true);
+const itemSelectedAtom = atom('');
 
 const useStyles = makeStyles({
   surface: {
     height: '90vh',
     minWidth: '90vw',
   },
-  body: {
+  bodySidebar: {
     height: '100%',
     display: 'grid',
     gridTemplateRows: '30px auto 30px',
     gridTemplateColumns: '120px 25px 25px 30px auto',
+  },
+  bodyNoSidebar: {
+    height: '100%',
+    display: 'grid',
+    gridTemplateRows: '30px auto 30px',
+    gridTemplateColumns: '0px 25px 25px 35px auto',
   },
   places: {
     gridRow: '1 / span 3',
@@ -70,6 +79,8 @@ const useStyles = makeStyles({
     gridRow: '2',
     gridColumn: '2 / span 4',
     overflow: 'auto',
+    // alignSelf: 'stretch',
+    // justifySelf: 'stretch'
   },
   back: {
     gridRow: '1',
@@ -162,7 +173,7 @@ async function GetFolderContents(
 
 function LocationsList(): ReactElement {
   const locations = use(GetRootLocations());
-  const [curLoc, setCurLoc] = useAtom(currentLocation);
+  const [curLoc, setCurLoc] = useAtom(currentLocationAtom);
   return (
     <>
       {locations.map((loc) => {
@@ -186,7 +197,7 @@ function LocationsList(): ReactElement {
 
 function FavoritesList(): ReactElement {
   const favorites = use(GetFavorites());
-  const [curLoc, setCurLoc] = useAtom(currentLocation);
+  const [curLoc, setCurLoc] = useAtom(currentLocationAtom);
   return (
     <>
       {[...favorites.entries()].map(([key, val]) => {
@@ -237,12 +248,29 @@ function FilePlaces({ className }: FilePlacesProps): ReactElement {
 
 function Location(): ReactElement {
   const classes = useStyles();
-  const curLocVal = useAtomValue(currentLocation);
+  const curLocVal = useAtomValue(currentLocationAtom);
   return <div className={classes.cur}>{curLocVal}</div>;
 }
 
 function FileFolderPickerHeader(): ReactElement {
   const classes = useStyles();
+  const setSidebarVis = useSetAtom(sidebarVisibleAtom);
+  const [checkedValues, setCheckedValues] = useState<Record<string, string[]>>({
+    sidebar: ['visible'],
+    show: [],
+    view: ['list'],
+  });
+  const onChange: MenuProps['onCheckedValueChange'] = (
+    e,
+    { name, checkedItems },
+  ) => {
+    setCheckedValues((s) => {
+      return s ? { ...s, [name]: checkedItems } : { [name]: checkedItems };
+    });
+    if (name === 'sidebar') {
+      setSidebarVis(checkedItems.includes('visible'));
+    }
+  };
   return (
     <>
       <Button className={classes.back} icon={<ChevronLeft20Filled />} />
@@ -261,15 +289,17 @@ function FileFolderPickerHeader(): ReactElement {
           />
         </MenuTrigger>
         <MenuPopover>
-          <MenuList>
-            <MenuItemCheckbox name="sidebar" value="true">
+          <MenuList
+            checkedValues={checkedValues}
+            onCheckedValueChange={onChange}>
+            <MenuItemCheckbox name="sidebar" value="visible">
               Show Sidebar
             </MenuItemCheckbox>
             <MenuDivider />
-            <MenuItemCheckbox name="hidden" value="false">
+            <MenuItemCheckbox name="show" value="hidden">
               Show hidden files
             </MenuItemCheckbox>
-            <MenuItemCheckbox name="extensions" value="true">
+            <MenuItemCheckbox name="show" value="extensions">
               Show file extensions
             </MenuItemCheckbox>
             <MenuDivider />
@@ -289,16 +319,21 @@ function FileFolderPickerHeader(): ReactElement {
 
 function FileFolderPickerFooter(): ReactElement {
   const classes = useStyles();
+  const itemSelected = useAtomValue(itemSelectedAtom);
   return (
     <div className={classes.actions}>
       <Button className={classes.new} appearance="secondary">
         New Folder
       </Button>
-      <Button className={classes.cancel} appearance="secondary">
-        Cancel
-      </Button>
       <DialogTrigger disableButtonEnhancement>
-        <Button className={classes.select}>Select</Button>
+        <Button className={classes.cancel} appearance="secondary">
+          Cancel
+        </Button>
+      </DialogTrigger>
+      <DialogTrigger disableButtonEnhancement>
+        <Button className={classes.select} disabled={itemSelected === ''}>
+          Select
+        </Button>
       </DialogTrigger>
     </div>
   );
@@ -333,7 +368,7 @@ const columns: TableColumnDefinition<FileSystemItem>[] = [
 ];
 
 function FileFolderPickerContent(): ReactElement {
-  const curLocVal = useAtomValue(currentLocation);
+  const curLocVal = useAtomValue(currentLocationAtom);
   const data = use(GetFolderContents(curLocVal));
   const classes = useStyles();
   const defaultSortState = useMemo<
@@ -416,7 +451,7 @@ const DelayedFallback = ({
 
 function FileFolderSurface(): ReactElement {
   const classes = useStyles();
-  const setCurLoc = useSetAtom(currentLocation);
+  const setCurLoc = useSetAtom(currentLocationAtom);
   return (
     <>
       <Suspense>
@@ -431,13 +466,15 @@ function FileFolderSurface(): ReactElement {
 
 export function FolderChooser(props: {}): ReactElement {
   const classes = useStyles();
+  const hasSidebar = useAtomValue(sidebarVisibleAtom);
   return (
     <Dialog>
       <DialogTrigger>
         <Button>Open Folder Chooser</Button>
       </DialogTrigger>
       <DialogSurface className={classes.surface}>
-        <DialogBody className={classes.body}>
+        <DialogBody
+          className={hasSidebar ? classes.bodySidebar : classes.bodyNoSidebar}>
           <FileFolderSurface />
         </DialogBody>
       </DialogSurface>
