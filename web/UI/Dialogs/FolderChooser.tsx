@@ -498,35 +498,32 @@ const DelayedFallback = ({
   return show ? children : null;
 };
 
-function FileFolderSurface(): ReactElement {
+function FolderChooserSurface(): ReactElement {
   const classes = useStyles();
+  const hasSidebar = useAtomValue(sidebarVisibleAtom);
   const setCurLoc = useSetAtom(currentLocationAtom);
   return (
-    <>
-      <Suspense>
-        <FilePlaces className={classes.places} />
-      </Suspense>
-      <Suspense>
-        <FileFolderPicker onChangeFolder={setCurLoc} />
-      </Suspense>
-    </>
+    <DialogSurface className={classes.surface}>
+      <DialogBody
+        className={hasSidebar ? classes.bodySidebar : classes.bodyNoSidebar}>
+        <Suspense>
+          {hasSidebar ? <FilePlaces className={classes.places} /> : <></>}
+        </Suspense>
+        <Suspense>
+          <FileFolderPicker onChangeFolder={setCurLoc} />
+        </Suspense>
+      </DialogBody>
+    </DialogSurface>
   );
 }
 
 export function FolderChooser(props: {}): ReactElement {
-  const classes = useStyles();
-  const hasSidebar = useAtomValue(sidebarVisibleAtom);
   return (
     <Dialog>
       <DialogTrigger>
         <Button>Open Folder Chooser</Button>
       </DialogTrigger>
-      <DialogSurface className={classes.surface}>
-        <DialogBody
-          className={hasSidebar ? classes.bodySidebar : classes.bodyNoSidebar}>
-          <FileFolderSurface />
-        </DialogBody>
-      </DialogSurface>
+      <FolderChooserSurface />
     </Dialog>
   );
 }
