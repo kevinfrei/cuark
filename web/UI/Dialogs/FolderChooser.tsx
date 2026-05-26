@@ -23,6 +23,7 @@ import {
   MenuProps,
   MenuTrigger,
   TableColumnDefinition,
+  TableRowId,
 } from '@fluentui/react-components';
 import {
   ChevronDown20Filled,
@@ -30,7 +31,7 @@ import {
   ChevronRight20Filled,
   OptionsRegular,
 } from '@fluentui/react-icons';
-import { isArrayOfString } from '@freik/typechk';
+import { isArrayOfString, isNumber } from '@freik/typechk';
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
   ReactElement,
@@ -52,6 +53,8 @@ import { CallMainThrow } from '../../Tools/Ipc';
 const currentLocationAtom = atom('');
 const sidebarVisibleAtom = atom(true);
 const itemSelectedAtom = atom('');
+const showHiddenAtom = atom(false);
+const showFileTypesAtom = atom(true);
 
 const useStyles = makeStyles({
   surface: {
@@ -61,14 +64,14 @@ const useStyles = makeStyles({
   bodySidebar: {
     height: '100%',
     display: 'grid',
-    gridTemplateRows: '30px auto 30px',
-    gridTemplateColumns: '120px 25px 25px 30px auto',
+    gridTemplateRows: '30px 1fr 30px',
+    gridTemplateColumns: '120px 30px 30px 40px 1fr',
   },
   bodyNoSidebar: {
     height: '100%',
     display: 'grid',
-    gridTemplateRows: '30px auto 30px',
-    gridTemplateColumns: '0px 25px 25px 35px auto',
+    gridTemplateRows: '30px 1fr 30px',
+    gridTemplateColumns: '0px 30px 30px 40px 1fr',
   },
   places: {
     gridRow: '1 / span 3',
@@ -78,9 +81,10 @@ const useStyles = makeStyles({
   content: {
     gridRow: '2',
     gridColumn: '2 / span 4',
-    overflow: 'auto',
+    overflowX: 'clip',
+    overflowY: 'scroll',
     // alignSelf: 'stretch',
-    // justifySelf: 'stretch'
+    // justifySelf: 'stretch',
   },
   back: {
     gridRow: '1',
@@ -149,30 +153,34 @@ async function GetRootLocations(skipCache?: boolean): Promise<string[]> {
 const cachedFC = new Map<string, FileSystemItem[]>();
 async function GetFolderContents(
   filePath: string,
+  hidden: boolean,
   skipCache?: boolean,
 ): Promise<FileSystemItem[]> {
   if (filePath.length === 0) {
     return [];
   }
+  const key = (hidden ? '*' : '+') + filePath;
   let val: undefined | FileSystemItem[] = undefined;
   do {
-    val = cachedFC.get(filePath);
-    if (!val || skipCache) {
-      cachedFC.set(
+    if (!skipCache) {
+      val = cachedFC.get(key);
+    }
+    skipCache = false;
+    if (!val) {
+      val = await CallMainThrow(
+        IpcCall.GetFolderContents,
+        chkFolderContents,
         filePath,
-        await CallMainThrow(
-          IpcCall.GetFolderContents,
-          chkFolderContents,
-          filePath,
-        ),
       );
+      cachedFC.set(key, val);
     }
   } while (val === undefined);
   return val;
 }
 
 function LocationsList(): ReactElement {
-  const locations = use(GetRootLocations());
+  const rootLocPromise = useMemo(() => GetRootLocations(), []);
+  const locations = use(rootLocPromise);
   const [curLoc, setCurLoc] = useAtom(currentLocationAtom);
   return (
     <>
@@ -196,7 +204,8 @@ function LocationsList(): ReactElement {
 }
 
 function FavoritesList(): ReactElement {
-  const favorites = use(GetFavorites());
+  const favPromise = useMemo(() => GetFavorites(), []);
+  const favorites = use(favPromise);
   const [curLoc, setCurLoc] = useAtom(currentLocationAtom);
   return (
     <>
@@ -255,9 +264,15 @@ function Location(): ReactElement {
 function FileFolderPickerHeader(): ReactElement {
   const classes = useStyles();
   const setSidebarVis = useSetAtom(sidebarVisibleAtom);
+  const hiddenFiles = useAtomValue(showHiddenAtom);
+  const showFileTypes = useAtomValue(showFileTypesAtom);
+  const show: (string | false)[] = [
+    hiddenFiles ? 'hidden' : false,
+    showFileTypes ? 'extensions' : false,
+  ];
   const [checkedValues, setCheckedValues] = useState<Record<string, string[]>>({
     sidebar: ['visible'],
-    show: [],
+    show: show.filter((val) => val !== false),
     view: ['list'],
   });
   const onChange: MenuProps['onCheckedValueChange'] = (
@@ -319,14 +334,17 @@ function FileFolderPickerHeader(): ReactElement {
 
 function FileFolderPickerFooter(): ReactElement {
   const classes = useStyles();
-  const itemSelected = useAtomValue(itemSelectedAtom);
+  const [itemSelected, setItemSelected] = useAtom(itemSelectedAtom);
   return (
     <div className={classes.actions}>
       <Button className={classes.new} appearance="secondary">
         New Folder
       </Button>
       <DialogTrigger disableButtonEnhancement>
-        <Button className={classes.cancel} appearance="secondary">
+        <Button
+          className={classes.cancel}
+          appearance="secondary"
+          onClick={() => setItemSelected('')}>
           Cancel
         </Button>
       </DialogTrigger>
@@ -368,18 +386,37 @@ const columns: TableColumnDefinition<FileSystemItem>[] = [
 ];
 
 function FileFolderPickerContent(): ReactElement {
-  const curLocVal = useAtomValue(currentLocationAtom);
-  const data = use(GetFolderContents(curLocVal));
+  const [curLocVal, setCurLoc] = useAtom(currentLocationAtom);
+  const showHidden = useAtomValue(showHiddenAtom);
+  const showTypes = useAtomValue(showFileTypesAtom);
+  const folderContentsPromise = useMemo(
+    () => GetFolderContents(curLocVal, true),
+    [curLocVal, showHidden, showTypes],
+  );
+  const data = use(folderContentsPromise);
+  const setItemSelected = useSetAtom(itemSelectedAtom);
   const classes = useStyles();
   const defaultSortState = useMemo<
     Parameters<NonNullable<DataGridProps['onSortChange']>>[1]
   >(() => ({ sortColumn: 'file', sortDirection: 'ascending' }), []);
+  const [selectedRows, setSelectedRows] = useState(new Set<TableRowId>([]));
+  const onSelectionChange: DataGridProps['onSelectionChange'] = (e, d) => {
+    setSelectedRows(d.selectedItems);
+    if (d.selectedItems.size === 0) {
+      setItemSelected('');
+    } else {
+      const index = d.selectedItems.values().next().value;
+      if (isNumber(index)) {
+        setItemSelected(data[index].file);
+      }
+    }
+  };
 
   const columnSizingOptions = {
-    file: { minWidth: 80, defaultWidth: 120 },
-    size: { minWidth: 10, defaultWidth: 60 },
+    file: { minWidth: 150, defaultWidth: 150 },
+    size: { minWidth: 10, defaultWidth: 40 },
     date: { minWidth: 20, defaultWidth: 80 },
-    type: { minWidth: 20, defaultWidth: 60 },
+    type: { minWidth: 20, defaultWidth: 40 },
   };
 
   return (
@@ -388,11 +425,15 @@ function FileFolderPickerContent(): ReactElement {
       items={data}
       columns={columns}
       sortable
+      selectionMode="single"
+      subtleSelection
+      selectedItems={selectedRows}
+      onSelectionChange={onSelectionChange}
       defaultSortState={defaultSortState}
-      style={{ minWidth: '500px' }}
+      // style={{ minWidth: '500px' }}
       size="small"
       resizableColumns
-      resizableColumnsOptions={{ autoFitColumns: true }}
+      resizableColumnsOptions={{ autoFitColumns: false }}
       columnSizingOptions={columnSizingOptions}>
       <DataGridHeader>
         <DataGridRow>
@@ -403,7 +444,15 @@ function FileFolderPickerContent(): ReactElement {
       </DataGridHeader>
       <DataGridBody<FileSystemItem>>
         {({ item, rowId }) => (
-          <DataGridRow<FileSystemItem> key={rowId}>
+          <DataGridRow<FileSystemItem>
+            key={rowId}
+            onDoubleClick={() => {
+              // If we double-click a folder, navigate to the new folder
+              console.log('Dblclk:', curLocVal, item);
+              if (item.type === 'directory') {
+                setCurLoc(curLocVal + '/' + item.file);
+              }
+            }}>
             {({ renderCell }) => (
               <DataGridCell>{renderCell(item)}</DataGridCell>
             )}
