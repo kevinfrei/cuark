@@ -53,6 +53,7 @@ import {
 import { CallMainThrow } from '../../Tools/Ipc';
 
 type FileInfo = FileSystemItem & { viewName: string };
+type ResultProp = { setResult: (res: string | null) => void };
 
 const currentLocationAtom = atom('');
 const sidebarVisibleAtom = atom(true);
@@ -192,6 +193,11 @@ async function GetFolderContents(
     }
   } while (val === undefined);
   return val;
+}
+
+function combineLocationAndFile(loc: string, file: string): string {
+  const slash = loc.indexOf('/') >= 0 ? '/' : '\\';
+  return loc + (loc.endsWith(slash) ? '' : slash) + file;
 }
 
 function LocationsList(): ReactElement {
@@ -383,9 +389,10 @@ function FileFolderPickerHeader(): ReactElement {
   );
 }
 
-function FileFolderPickerFooter(): ReactElement {
+function FileFolderPickerFooter({ setResult }: ResultProp): ReactElement {
   const classes = useStyles();
   const [itemSelected, setItemSelected] = useAtom(itemSelectedAtom);
+  const curLoc = useAtomValue(currentLocationAtom);
   return (
     <div className={classes.actions}>
       <Button className={classes.new} appearance="secondary">
@@ -395,12 +402,20 @@ function FileFolderPickerFooter(): ReactElement {
         <Button
           className={classes.cancel}
           appearance="secondary"
-          onClick={() => setItemSelected('')}>
+          onClick={() => {
+            setItemSelected('');
+            setResult(null);
+          }}>
           Cancel
         </Button>
       </DialogTrigger>
       <DialogTrigger disableButtonEnhancement>
-        <Button className={classes.select} disabled={itemSelected === ''}>
+        <Button
+          className={classes.select}
+          disabled={itemSelected === ''}
+          onClick={() =>
+            setResult(combineLocationAndFile(curLoc, itemSelected))
+          }>
           Select
         </Button>
       </DialogTrigger>
@@ -451,7 +466,8 @@ function FileFolderPickerContent(): ReactElement {
   );
   const rawData = use(folderContentsPromise);
   const data: FileInfo[] = rawData.map((fsi: FileSystemItem) => ({
-    viewName: showTypes ? fsi.file : no_ext(fsi.file),
+    viewName:
+      showTypes || !fsi.type.endsWith('file') ? fsi.file : no_ext(fsi.file),
     ...fsi,
   }));
   const setItemSelected = useSetAtom(itemSelectedAtom);
@@ -459,7 +475,7 @@ function FileFolderPickerContent(): ReactElement {
   const defaultSortState = useMemo<
     Parameters<NonNullable<DataGridProps['onSortChange']>>[1]
   >(() => ({ sortColumn: 'file', sortDirection: 'ascending' }), []);
-  const [selectedRows, setSelectedRows] = useState(new Set<TableRowId>([]));
+  const [selectedRows, setSelectedRows] = useState(new Set<TableRowId>());
   const onSelectionChange: DataGridProps['onSelectionChange'] = (e, d) => {
     setSelectedRows(d.selectedItems);
     if (d.selectedItems.size === 0) {
@@ -508,15 +524,14 @@ function FileFolderPickerContent(): ReactElement {
             key={rowId}
             onDoubleClick={() => {
               // If we double-click a folder, navigate to the new folder
-              console.log('Dblclk:', curLocVal, item);
               if (item.type === 'directory') {
                 // Special-case for a single /
-                setCurLoc(
-                  curLocVal + (curLocVal.endsWith('/') ? '' : '/') + item.file,
-                );
+                setCurLoc(combineLocationAndFile(curLocVal, item.file));
               } else if (item.type === 'drive') {
                 setCurLoc(item.file);
               }
+              setSelectedRows(new Set<TableRowId>());
+              setItemSelected('');
             }}>
             {({ renderCell }) => (
               <DataGridCell>{renderCell(item)}</DataGridCell>
@@ -530,10 +545,11 @@ function FileFolderPickerContent(): ReactElement {
 
 type FileFolderPickerProps = {
   onChangeFolder: (path: string) => void;
-};
+} & ResultProp;
 
 function FileFolderPicker({
   onChangeFolder,
+  setResult,
 }: FileFolderPickerProps): ReactElement {
   return (
     <>
@@ -541,7 +557,7 @@ function FileFolderPicker({
       <Suspense>
         <FileFolderPickerContent />
       </Suspense>
-      <FileFolderPickerFooter />
+      <FileFolderPickerFooter setResult={setResult} />
     </>
   );
 }
@@ -563,7 +579,7 @@ const DelayedFallback = ({
   return show ? children : null;
 };
 
-function FolderChooserSurface(): ReactElement {
+function FolderChooserSurface({ setResult }: ResultProp): ReactElement {
   const classes = useStyles();
   const hasSidebar = useAtomValue(sidebarVisibleAtom);
   const setCurLoc = useSetAtom(currentLocationAtom);
@@ -575,20 +591,29 @@ function FolderChooserSurface(): ReactElement {
           {hasSidebar ? <FilePlaces className={classes.places} /> : <></>}
         </Suspense>
         <Suspense>
-          <FileFolderPicker onChangeFolder={setCurLoc} />
+          <FileFolderPicker onChangeFolder={setCurLoc} setResult={setResult} />
         </Suspense>
       </DialogBody>
     </DialogSurface>
   );
 }
 
-export function FolderChooser(props: {}): ReactElement {
+export type FolderChooserProps = {
+  text?: string;
+  trigger?: ReactElement;
+} & ResultProp;
+
+export function FolderChooser({
+  text,
+  trigger,
+  setResult,
+}: FolderChooserProps): ReactElement {
   return (
     <Dialog>
       <DialogTrigger>
-        <Button>Open Folder Chooser</Button>
+        {trigger || <Button>{text || 'Select Folder'}</Button>}
       </DialogTrigger>
-      <FolderChooserSurface />
+      <FolderChooserSurface setResult={setResult} />
     </Dialog>
   );
 }

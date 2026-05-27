@@ -65,7 +65,7 @@
   },
   "dependencies": {
     "@fluentui/react": "^8.125.6",
-    "@fluentui/react-components": "^9.73.8",
+    "@fluentui/react-components": "^9.74.1",
     "@fluentui/react-icons": "^2.0.328",
     "@fluentui/react-icons-mdl2": "^1.4.6",
     "@freik/fluentui-tools": "^1.2.10",
