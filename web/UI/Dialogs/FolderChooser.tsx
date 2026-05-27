@@ -26,10 +26,11 @@ import {
   TableRowId,
 } from '@fluentui/react-components';
 import {
+  ArrowEnterUp20Filled,
   ChevronDown20Filled,
   ChevronLeft20Filled,
   ChevronRight20Filled,
-  OptionsRegular,
+  Options20Regular,
 } from '@fluentui/react-icons';
 import { isArrayOfString, isNumber } from '@freik/typechk';
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
@@ -37,6 +38,7 @@ import {
   ReactElement,
   Suspense,
   use,
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -67,13 +69,13 @@ const useStyles = makeStyles({
     height: '100%',
     display: 'grid',
     gridTemplateRows: '30px 1fr 30px',
-    gridTemplateColumns: '120px 30px 30px 40px 1fr',
+    gridTemplateColumns: '120px 30px 30px 40px 30px 1fr',
   },
   bodyNoSidebar: {
     height: '100%',
     display: 'grid',
     gridTemplateRows: '30px 1fr 30px',
-    gridTemplateColumns: '0px 30px 30px 40px 1fr',
+    gridTemplateColumns: '0px 30px 30px 40px 30px 1fr',
   },
   places: {
     gridRow: '1 / span 3',
@@ -82,7 +84,7 @@ const useStyles = makeStyles({
   },
   content: {
     gridRow: '2',
-    gridColumn: '2 / span 4',
+    gridColumn: '2 / span 5',
     overflowX: 'clip',
     overflowY: 'scroll',
     // alignSelf: 'stretch',
@@ -101,16 +103,21 @@ const useStyles = makeStyles({
     gridColumn: '4',
     fontSize: 'small',
   },
-  cur: {
+  up: {
     gridRow: '1',
     gridColumn: '5',
+    fontSize: 'small',
+  },
+  cur: {
+    gridRow: '1',
+    gridColumn: '6',
     fontSize: 'small',
     margin: '5px',
   },
   actions: {
     display: 'grid',
     gridRow: '3',
-    gridColumn: '2 / span 4',
+    gridColumn: '2 / span 5',
     gridTemplateRows: 'auto',
     gridTemplateColumns: '110px auto 100px 100px',
   },
@@ -159,7 +166,13 @@ async function GetFolderContents(
   skipCache?: boolean,
 ): Promise<FileSystemItem[]> {
   if (filePath.length === 0) {
-    return [];
+    const roots = await GetRootLocations();
+    return roots.map((val: string) => ({
+      file: val,
+      date: 0,
+      size: -1n,
+      type: 'drive',
+    }));
   }
   const key = (hidden ? '*' : '+') + filePath;
   let val: undefined | FileSystemItem[] = undefined;
@@ -258,17 +271,23 @@ function FilePlaces({ className }: FilePlacesProps): ReactElement {
   );
 }
 
-function Location(): ReactElement {
-  const classes = useStyles();
-  const curLocVal = useAtomValue(currentLocationAtom);
-  return <div className={classes.cur}>{curLocVal}</div>;
-}
-
 function FileFolderPickerHeader(): ReactElement {
   const classes = useStyles();
+  const [curLocVal, setLocation] = useAtom(currentLocationAtom);
   const setSidebarVis = useSetAtom(sidebarVisibleAtom);
   const [hiddenFiles, setHiddenFiles] = useAtom(showHiddenAtom);
   const [showFileTypes, setShowFileTypes] = useAtom(showFileTypesAtom);
+  const upDir = useCallback((curLoc: string) => {
+    const lastFSlash = curLoc.lastIndexOf('/');
+    const lastBSlash = curLoc.lastIndexOf('\\');
+    setLocation(
+      curLoc.substring(
+        0,
+        // The third item is to special case the '/' scenario
+        Math.max(lastBSlash, lastFSlash, curLoc.length === 1 ? 0 : 1),
+      ),
+    );
+  }, []);
   const show: (string | false)[] = [
     hiddenFiles ? 'hidden' : false,
     showFileTypes ? 'extensions' : false,
@@ -278,37 +297,45 @@ function FileFolderPickerHeader(): ReactElement {
     show: show.filter((val) => val !== false),
     view: ['list'],
   });
-  const onChange: MenuProps['onCheckedValueChange'] = (
-    e,
-    { name, checkedItems },
-  ) => {
-    setCheckedValues((s) => {
-      return s ? { ...s, [name]: checkedItems } : { [name]: checkedItems };
-    });
-    if (name === 'sidebar') {
-      setSidebarVis(checkedItems.includes('visible'));
-    }
-    if (name === 'show' && hiddenFiles !== checkedItems.includes('hidden')) {
-      setHiddenFiles(checkedItems.includes('hidden'));
-    }
-    if (
-      name === 'show' &&
-      showFileTypes !== checkedItems.includes('extensions')
-    ) {
-      setShowFileTypes(checkedItems.includes('extensions'));
-    }
-  };
+  const onChange: MenuProps['onCheckedValueChange'] = useCallback(
+    (e, { name, checkedItems }) => {
+      setCheckedValues((s) => {
+        return s ? { ...s, [name]: checkedItems } : { [name]: checkedItems };
+      });
+      if (name === 'sidebar') {
+        setSidebarVis(checkedItems.includes('visible'));
+      }
+      if (name === 'show' && hiddenFiles !== checkedItems.includes('hidden')) {
+        setHiddenFiles(checkedItems.includes('hidden'));
+      }
+      if (
+        name === 'show' &&
+        showFileTypes !== checkedItems.includes('extensions')
+      ) {
+        setShowFileTypes(checkedItems.includes('extensions'));
+      }
+    },
+    [showFileTypes, hiddenFiles],
+  );
   return (
     <>
-      <Button className={classes.back} icon={<ChevronLeft20Filled />} />
-      <Button className={classes.fwd} icon={<ChevronRight20Filled />} />
+      <Button
+        className={classes.back}
+        icon={<ChevronLeft20Filled />}
+        disabled
+      />
+      <Button
+        className={classes.fwd}
+        icon={<ChevronRight20Filled />}
+        disabled
+      />
       <Menu>
         <MenuTrigger>
           <MenuButton
             className={classes.opt}
             icon={
               <>
-                <OptionsRegular />
+                <Options20Regular />
                 <ChevronDown20Filled />
               </>
             }
@@ -345,7 +372,13 @@ function FileFolderPickerHeader(): ReactElement {
           </MenuList>
         </MenuPopover>
       </Menu>
-      <Location />
+      <Button
+        className={classes.up}
+        icon={<ArrowEnterUp20Filled />}
+        onClick={() => upDir(curLocVal)}
+        disabled={curLocVal.length === 0}
+      />
+      <div className={classes.cur}>{curLocVal}</div>;
     </>
   );
 }
@@ -477,7 +510,12 @@ function FileFolderPickerContent(): ReactElement {
               // If we double-click a folder, navigate to the new folder
               console.log('Dblclk:', curLocVal, item);
               if (item.type === 'directory') {
-                setCurLoc(curLocVal + '/' + item.file);
+                // Special-case for a single /
+                setCurLoc(
+                  curLocVal + (curLocVal.endsWith('/') ? '' : '/') + item.file,
+                );
+              } else if (item.type === 'drive') {
+                setCurLoc(item.file);
               }
             }}>
             {({ renderCell }) => (
