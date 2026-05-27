@@ -24,6 +24,6 @@ void folder_picker(crow::response& resp, std::string_view data);
 std::vector<std::string> get_file_system_roots();
 std::map<std::string, std::string> get_named_locations();
 std::vector<Shared::FileSystemItem> get_folder_contents(
-    std::string_view file_path);
+    std::string_view file_path, bool show_hidden);
 
 } // namespace files

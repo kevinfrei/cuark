@@ -450,13 +450,13 @@ double get_date_double(const fs::file_time_type& ftime) {
 }
 
 std::vector<Shared::FileSystemItem> get_folder_contents(
-    std::string_view file_path) {
+    std::string_view file_path, bool show_hidden) {
   std::vector<Shared::FileSystemItem> res;
   fs::path dir_path = file_path; // Current directory
   try {
     for (const auto& entry : fs::directory_iterator(dir_path)) {
       try {
-        if (!is_hidden_file(entry.path())) {
+        if (show_hidden || !is_hidden_file(entry.path())) {
           Shared::FileSystemItem fsi;
           fsi.file = entry.path().filename().native();
           fsi.type = get_type(entry);

@@ -50,6 +50,8 @@ import {
 } from '../../Shared/CommonTypes';
 import { CallMainThrow } from '../../Tools/Ipc';
 
+type FileInfo = FileSystemItem & { viewName: string };
+
 const currentLocationAtom = atom('');
 const sidebarVisibleAtom = atom(true);
 const itemSelectedAtom = atom('');
@@ -171,6 +173,7 @@ async function GetFolderContents(
         IpcCall.GetFolderContents,
         chkFolderContents,
         filePath,
+        !!hidden,
       );
       cachedFC.set(key, val);
     }
@@ -264,8 +267,8 @@ function Location(): ReactElement {
 function FileFolderPickerHeader(): ReactElement {
   const classes = useStyles();
   const setSidebarVis = useSetAtom(sidebarVisibleAtom);
-  const hiddenFiles = useAtomValue(showHiddenAtom);
-  const showFileTypes = useAtomValue(showFileTypesAtom);
+  const [hiddenFiles, setHiddenFiles] = useAtom(showHiddenAtom);
+  const [showFileTypes, setShowFileTypes] = useAtom(showFileTypesAtom);
   const show: (string | false)[] = [
     hiddenFiles ? 'hidden' : false,
     showFileTypes ? 'extensions' : false,
@@ -284,6 +287,15 @@ function FileFolderPickerHeader(): ReactElement {
     });
     if (name === 'sidebar') {
       setSidebarVis(checkedItems.includes('visible'));
+    }
+    if (name === 'show' && hiddenFiles !== checkedItems.includes('hidden')) {
+      setHiddenFiles(checkedItems.includes('hidden'));
+    }
+    if (
+      name === 'show' &&
+      showFileTypes !== checkedItems.includes('extensions')
+    ) {
+      setShowFileTypes(checkedItems.includes('extensions'));
     }
   };
   return (
@@ -307,21 +319,27 @@ function FileFolderPickerHeader(): ReactElement {
           <MenuList
             checkedValues={checkedValues}
             onCheckedValueChange={onChange}>
-            <MenuItemCheckbox name="sidebar" value="visible">
+            <MenuItemCheckbox
+              name="sidebar"
+              value="visible"
+              persistOnClick={false}>
               Show Sidebar
             </MenuItemCheckbox>
             <MenuDivider />
-            <MenuItemCheckbox name="show" value="hidden">
+            <MenuItemCheckbox name="show" value="hidden" persistOnClick={false}>
               Show hidden files
             </MenuItemCheckbox>
-            <MenuItemCheckbox name="show" value="extensions">
+            <MenuItemCheckbox
+              name="show"
+              value="extensions"
+              persistOnClick={false}>
               Show file extensions
             </MenuItemCheckbox>
             <MenuDivider />
-            <MenuItemRadio name="view" value="icons" persistOnClick={true}>
+            <MenuItemRadio name="view" value="icons" persistOnClick={false}>
               View as Icons
             </MenuItemRadio>
-            <MenuItemRadio name="view" value="list" persistOnClick={true}>
+            <MenuItemRadio name="view" value="list" persistOnClick={false}>
               View as List
             </MenuItemRadio>
           </MenuList>
@@ -357,43 +375,52 @@ function FileFolderPickerFooter(): ReactElement {
   );
 }
 
-const columns: TableColumnDefinition<FileSystemItem>[] = [
-  createTableColumn<FileSystemItem>({
+const columns: TableColumnDefinition<FileInfo>[] = [
+  createTableColumn<FileInfo>({
     columnId: 'file',
     compare: (a, b) => a.file.localeCompare(b.file),
     renderHeaderCell: () => 'File Name',
-    renderCell: (item) => item.file,
+    renderCell: (item) => item.viewName,
   }),
-  createTableColumn<FileSystemItem>({
+  createTableColumn<FileInfo>({
+    columnId: 'type',
+    compare: (a, b) => a.type.localeCompare(b.type),
+    renderHeaderCell: (data) => 'Type',
+    renderCell: (item) => item.type,
+  }),
+  createTableColumn<FileInfo>({
     columnId: 'size',
     compare: (a, b) => (a.size < b.size ? -1 : a.size > b.size ? 1 : 0),
     renderHeaderCell: () => 'File Size',
     renderCell: (item) => (item.type === 'directory' ? '' : item.size),
   }),
-  createTableColumn<FileSystemItem>({
+  createTableColumn<FileInfo>({
     columnId: 'date',
     compare: (a, b) => a.date - b.date,
     renderHeaderCell: () => 'Date',
     // item.date is millisecondcs since epoch, so we can create a Date object from it and format it as needed
     renderCell: (item) => new Date(item.date).toLocaleString(),
   }),
-  createTableColumn<FileSystemItem>({
-    columnId: 'type',
-    compare: (a, b) => a.type.localeCompare(b.type),
-    renderHeaderCell: (data) => 'Type',
-    renderCell: (item) => item.type,
-  }),
 ];
+
+function no_ext(name: string) {
+  const lastDot = name.lastIndexOf('.');
+  return lastDot > 0 ? name.substring(0, lastDot) : name;
+}
 
 function FileFolderPickerContent(): ReactElement {
   const [curLocVal, setCurLoc] = useAtom(currentLocationAtom);
   const showHidden = useAtomValue(showHiddenAtom);
   const showTypes = useAtomValue(showFileTypesAtom);
   const folderContentsPromise = useMemo(
-    () => GetFolderContents(curLocVal, true),
-    [curLocVal, showHidden, showTypes],
+    () => GetFolderContents(curLocVal, showHidden),
+    [curLocVal, showHidden],
   );
-  const data = use(folderContentsPromise);
+  const rawData = use(folderContentsPromise);
+  const data: FileInfo[] = rawData.map((fsi: FileSystemItem) => ({
+    viewName: showTypes ? fsi.file : no_ext(fsi.file),
+    ...fsi,
+  }));
   const setItemSelected = useSetAtom(itemSelectedAtom);
   const classes = useStyles();
   const defaultSortState = useMemo<
@@ -413,7 +440,7 @@ function FileFolderPickerContent(): ReactElement {
   };
 
   const columnSizingOptions = {
-    file: { minWidth: 150, defaultWidth: 150 },
+    display: { minWidth: 150, defaultWidth: 150 },
     size: { minWidth: 10, defaultWidth: 40 },
     date: { minWidth: 20, defaultWidth: 80 },
     type: { minWidth: 20, defaultWidth: 40 },
@@ -442,9 +469,9 @@ function FileFolderPickerContent(): ReactElement {
           )}
         </DataGridRow>
       </DataGridHeader>
-      <DataGridBody<FileSystemItem>>
+      <DataGridBody<FileInfo>>
         {({ item, rowId }) => (
-          <DataGridRow<FileSystemItem>
+          <DataGridRow<FileInfo>
             key={rowId}
             onDoubleClick={() => {
               // If we double-click a folder, navigate to the new folder
