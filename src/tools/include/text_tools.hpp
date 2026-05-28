@@ -122,11 +122,12 @@ std::string lowercase(std::string_view str);
 bool iequals(std::string_view lhs, std::string_view rhs);
 
 // Suppress deprecation warnings for legacy support
-#pragma warning(push)
-#pragma warning(disable : 4996) // MSVC
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#else
+#pragma warning(push)
+#pragma warning(disable : 4996) // MSVC
 #endif
 
 // Usage Examples:
@@ -169,9 +170,10 @@ std::basic_string<TargetChar> convert_string(
   }
 }
 
-#pragma warning(pop)
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
+#else
+#pragma warning(pop)
 #endif
 
 } // namespace text

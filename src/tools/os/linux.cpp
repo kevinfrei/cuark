@@ -4,7 +4,9 @@
 #include <sstream>
 #include <string>
 
+#include <pwd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "file_tools.hpp"
 #include "os.hpp"
