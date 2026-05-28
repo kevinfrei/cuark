@@ -77,51 +77,6 @@ inline std::enable_if_t<is_enum_class_v<T>, crow::json::wvalue> to_json(
   return crow::json::wvalue(static_cast<std::underlying_type_t<T>>(value));
 }
 
-// A little extra work for string constants:
-
-// Function to manually escape a string for JSON
-inline std::string escape_json_string(std::string_view sv) {
-  std::ostringstream o;
-  for (char c : sv) {
-    if (c == '"') {
-      o << "\\\"";
-    } else if (c == '\\') {
-      o << "\\\\";
-    } else if (c == '\b') {
-      o << "\\b";
-    } else if (c == '\f') {
-      o << "\\f";
-    } else if (c == '\n') {
-      o << "\\n";
-    } else if (c == '\r') {
-      o << "\\r";
-    } else if (c == '\t') {
-      o << "\\t";
-    } else if (static_cast<unsigned char>(c) < 0x20 ||
-               static_cast<unsigned char>(c) > 0x7e) {
-      // Escape other control characters and non-ASCII characters as \uXXXX
-      o << "\\u" << std::hex << std::setw(4) << std::setfill('0')
-        << static_cast<int>(static_cast<unsigned char>(c));
-    } else {
-      o << c;
-    }
-  }
-  return o.str();
-}
-
-template <>
-struct impl_to_json<std::string> {
-  static inline crow::json::wvalue process(const std::string& value) {
-    return crow::json::wvalue(escape_json_string(value));
-  }
-};
-template <>
-struct impl_to_json<char*> {
-  static inline crow::json::wvalue process(const char* value) {
-    return crow::json::wvalue(escape_json_string(value));
-  }
-};
-
 template <>
 struct impl_to_json<uint64_t> {
   static inline crow::json::wvalue process(const uint64_t& value) {
@@ -142,10 +97,11 @@ struct impl_to_json<int64_t> {
   }
 };
 
+// A little extra work for string_view's:
 template <>
 struct impl_to_json<std::string_view> {
   static inline crow::json::wvalue process(std::string_view value) {
-    return crow::json::wvalue(escape_json_string(value));
+    return crow::json::wvalue(std::string{value});
   }
 };
 
