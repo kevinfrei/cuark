@@ -11,6 +11,7 @@
 
 #include "CommonTypes.hpp"
 #include "file_tools.hpp"
+#include "text_tools.hpp"
 #include "tools.hpp"
 
 #include "files.hpp"
@@ -408,7 +409,7 @@ void folder_picker(crow::response& resp, std::string_view data) {
 std::vector<std::string> get_file_system_roots() {
   std::vector<std::string> res;
   for (auto& i : drive_range{}) {
-    res.emplace_back(i.native());
+    res.emplace_back(text::convert_string<char>(i.native()));
   }
   return res;
 }
@@ -458,7 +459,8 @@ std::vector<Shared::FileSystemItem> get_folder_contents(
       try {
         if (show_hidden || !is_hidden_file(entry.path())) {
           Shared::FileSystemItem fsi;
-          fsi.file = entry.path().filename().native();
+          fsi.file =
+              text::convert_string<char>(entry.path().filename().native());
           fsi.type = get_type(entry);
           fsi.size = entry.is_regular_file() ? entry.file_size() : 0;
           fsi.date = get_date_double(entry.last_write_time());
