@@ -286,13 +286,24 @@ function FileFolderPickerHeader(): ReactElement {
   const upDir = useCallback((curLoc: string) => {
     const lastFSlash = curLoc.lastIndexOf('/');
     const lastBSlash = curLoc.lastIndexOf('\\');
-    setLocation(
-      curLoc.substring(
-        0,
-        // The third item is to special case the '/' scenario
-        Math.max(lastBSlash, lastFSlash, curLoc.length === 1 ? 0 : 1),
-      ),
-    );
+    if (lastBSlash >= 0 && curLoc.indexOf('\\') === lastBSlash) {
+      // We only have a single backslash.
+      if (lastBSlash === curLoc.length - 1) {
+        // If we've got "c:\" then just go to the list of roots:
+        setLocation('');
+      } else {
+        // Leave the final backslash on, so we have "C:\" instead of "C:"
+        setLocation(curLoc.substring(0, lastBSlash + 1));
+      }
+    } else {
+      setLocation(
+        curLoc.substring(
+          0,
+          // The third item is to special case the '/' scenario
+          Math.max(lastBSlash, lastFSlash, curLoc.length === 1 ? 0 : 1),
+        ),
+      );
+    }
   }, []);
   const show: (string | false)[] = [
     hiddenFiles ? 'hidden' : false,
