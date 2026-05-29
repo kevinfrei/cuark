@@ -122,7 +122,7 @@ std::string lowercase(std::string_view str);
 bool iequals(std::string_view lhs, std::string_view rhs);
 
 // Suppress deprecation warnings for legacy support
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #else
@@ -170,7 +170,7 @@ std::basic_string<TargetChar> convert_string(
   }
 }
 
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__GNUC__)
 #pragma GCC diagnostic pop
 #else
 #pragma warning(pop)
