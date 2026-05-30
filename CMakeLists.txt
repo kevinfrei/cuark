@@ -1,6 +1,8 @@
 # Minimum version of CMake required to build this project
 cmake_minimum_required(VERSION 3.28)
 
+include(.cuark/EarlyConfig.cmake)
+
 # Name of the project
 project(cuark)
 
