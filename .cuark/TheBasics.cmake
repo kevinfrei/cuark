@@ -52,5 +52,11 @@ else()
     set(TARGET_OS linux)
   elseif(APPLE)
     set(TARGET_OS macos)
+    add_compile_options(
+      "-fmodule-file=std=/opt/homebrew/opt/llvm/share/libc++/v1/std.pcm"
+    )
+    add_compile_options(
+      "-fmodule-file=std.compat=/opt/homebrew/opt/llvm/share/libc++/v1/std.compat.pcm"
+    )
   endif()
 endif()
