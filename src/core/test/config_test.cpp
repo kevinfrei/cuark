@@ -7,7 +7,7 @@
 
 #include "files.hpp"
 
-#include "config.hpp"
+import core.config;
 
 #if defined(_WIN32)
 static const char* argv0 = "core_testing.exe";

@@ -1,10 +1,11 @@
 # The core library of the app, implementing the main logic.
 # This is basically everything except the main entry point and the tests.
 
-add_library(
+add_library(core_lib)
+target_sources(core_lib PUBLIC FILE_SET CXX_MODULES FILES config.cppm)
+target_sources(
   core_lib
-  STATIC
-    config.cpp
+  PUBLIC
     files.cpp
     images.cpp
     handlers.cpp

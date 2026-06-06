@@ -11,7 +11,6 @@
 #include <crow.h>
 #include <crow/logging.h>
 
-#include "config.hpp"
 #include "files.hpp"
 #include "images.hpp"
 #include "quitting.hpp"
@@ -21,6 +20,7 @@
 
 #include "handlers.hpp"
 
+import core.config;
 import ts_cpp_idl.Shared;
 import ts_cpp_idl.crow_support;
 import tools.views;

@@ -6,7 +6,6 @@
 
 #include <crow.h>
 
-#include "config.hpp"
 #include "files.hpp"
 #include "handlers.hpp"
 #include "quitting.hpp"
@@ -15,6 +14,7 @@
 
 #include "setup.hpp"
 
+import core.config;
 import ts_cpp_idl.Shared;
 
 namespace {

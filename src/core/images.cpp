@@ -1,10 +1,11 @@
 #include <filesystem>
 #include <string>
 
-#include "config.hpp"
 #include "files.hpp"
 
 #include "images.hpp"
+
+import core.config;
 
 namespace image {
 

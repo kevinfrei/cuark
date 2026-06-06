@@ -1,3 +1,6 @@
+module;
+
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -13,7 +16,7 @@
 
 #include "files.hpp"
 
-#include "config.hpp"
+export module core.config;
 
 // Cuz I'm lazy:
 namespace fs = std::filesystem;
@@ -24,6 +27,7 @@ using read_lock = std::shared_lock<std::shared_mutex>;
 using write_lock = std::unique_lock<std::shared_mutex>;
 
 namespace {
+
 // This is a singleton pattern to ensure we only initialize the paths once.
 bool inited = false;
 std::shared_mutex init_mutex;
@@ -46,23 +50,26 @@ void init() {
 
 } // namespace
 
-void set_ready() {
+export using listening_function = std::function<void(
+    std::optional<std::string_view>, std::optional<std::string_view>)>;
+
+export void set_ready() {
   write_lock lock(init_mutex);
   config_ready = true;
 }
 
-void not_ready() {
+export void not_ready() {
   write_lock lock(init_mutex);
   config_ready = false;
 }
 
-bool is_ready() {
+export bool is_ready() {
   read_lock lock(init_mutex);
   return config_ready;
 }
 
 // Returns the path to the configuration directory for the application.
-fs::path get_path() {
+export fs::path get_path() {
   init();
   return fs::weakly_canonical(cfg_path / files::get_app_name());
 }
@@ -76,7 +83,7 @@ fs::path get_persistence_path() {
   return res;
 }
 
-fs::path get_playlist_path() {
+export fs::path get_playlist_path() {
   fs::path res = get_persistence_path() / "playlists";
   if (!fs::exists(res) && !fs::create_directories(res)) {
     CROW_LOG_ERROR << "Failed to create playlists directory: " << res.string();
@@ -123,7 +130,34 @@ void notify_listeners(std::string_view key,
     callback(old_value, new_value);
 }
 
-bool write_to_storage(std::string_view key, std::string_view value) {
+export std::optional<std::string> read_from_storage(std::string_view key) {
+  std::string key_str{key};
+  // Read from the cache first
+  {
+    read_lock lock(the_mutex);
+    auto it = cache.find(key_str);
+    if (it != cache.end()) {
+      return it->second;
+    }
+  }
+  // We're going to have to modify the cache, so we'll need a write lock.
+  // It's helpful to grab it before we do the disk read, so we don't have to
+  // deal with races from the write_to_storage function.
+  auto path_to_data = get_persistence_path() / files::file_name_encode(key);
+  write_lock write_lock(the_mutex);
+  if (!fs::exists(path_to_data)) {
+    return std::nullopt; // Key does not exist
+  }
+  auto maybe_value = files::read_file(path_to_data);
+  if (!maybe_value) {
+    return std::nullopt; // Failed to read the file
+  }
+  // Release the read lock before modifying the cache
+  cache[key_str] = *maybe_value; // Cache the value
+  return *maybe_value;
+}
+
+export bool write_to_storage(std::string_view key, std::string_view value) {
   std::optional<std::string> maybe_value;
   bool need_notification = has_listener(key);
   if (need_notification) {
@@ -160,34 +194,7 @@ bool write_to_storage(std::string_view key, std::string_view value) {
   return true;
 }
 
-std::optional<std::string> read_from_storage(std::string_view key) {
-  std::string key_str{key};
-  // Read from the cache first
-  {
-    read_lock lock(the_mutex);
-    auto it = cache.find(key_str);
-    if (it != cache.end()) {
-      return it->second;
-    }
-  }
-  // We're going to have to modify the cache, so we'll need a write lock.
-  // It's helpful to grab it before we do the disk read, so we don't have to
-  // deal with races from the write_to_storage function.
-  auto path_to_data = get_persistence_path() / files::file_name_encode(key);
-  write_lock write_lock(the_mutex);
-  if (!fs::exists(path_to_data)) {
-    return std::nullopt; // Key does not exist
-  }
-  auto maybe_value = files::read_file(path_to_data);
-  if (!maybe_value) {
-    return std::nullopt; // Failed to read the file
-  }
-  // Release the read lock before modifying the cache
-  cache[key_str] = *maybe_value; // Cache the value
-  return *maybe_value;
-}
-
-bool delete_from_storage(std::string_view key) {
+export bool delete_from_storage(std::string_view key) {
   std::optional<std::string> maybe_value;
   bool need_notification = has_listener(key);
   if (need_notification) {
@@ -218,12 +225,12 @@ bool delete_from_storage(std::string_view key) {
   return true;
 }
 
-void flush_storage_cache() {
+export void flush_storage_cache() {
   write_lock lock(the_mutex);
   cache.clear();
 }
 
-void clear_storage() {
+export void clear_storage() {
   flush_storage_cache();
   auto path_to_data = get_persistence_path();
   if (fs::exists(path_to_data)) {
@@ -238,8 +245,8 @@ void clear_storage() {
 
 int32_t next_listener_id = 0;
 
-std::int32_t subscribe_to_change(std::string_view key,
-                                 listening_function callback) {
+export std::int32_t subscribe_to_change(std::string_view key,
+                                        listening_function callback) {
   std::string key_str{key};
   write_lock lock(the_mutex);
   if (listeners.find(key_str) == listeners.end()) {
@@ -252,7 +259,7 @@ std::int32_t subscribe_to_change(std::string_view key,
   return next_listener_id++;
 }
 
-bool unsubscribe_from_change(std::int32_t listener_id) {
+export bool unsubscribe_from_change(std::int32_t listener_id) {
   write_lock lock(the_mutex);
   auto lk = listening_keys.find(listener_id);
   if (lk == listening_keys.end()) {
