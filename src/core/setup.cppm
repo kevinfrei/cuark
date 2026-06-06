@@ -9,13 +9,13 @@ module;
 
 #include "files.hpp"
 #include "handlers.hpp"
-#include "websocket.hpp"
 
 export module core.setup;
 
 import core.config;
 import core.quitting;
 import core.web;
+import core.websocket;
 import ts_cpp_idl.Shared;
 
 namespace setup {
