@@ -2,7 +2,14 @@
 # This is basically everything except the main entry point and the tests.
 
 add_library(core_lib)
-target_sources(core_lib PUBLIC FILE_SET CXX_MODULES FILES config.cppm)
+target_sources(
+  core_lib
+  PUBLIC
+  FILE_SET
+  CXX_MODULES
+  FILES
+    config.cppm setup.cppm
+)
 target_sources(
   core_lib
   PUBLIC
@@ -10,7 +17,6 @@ target_sources(
     images.cpp
     handlers.cpp
     quitting.cpp
-    setup.cpp
     tools.cpp
     transpile.cpp
     tunes.cpp

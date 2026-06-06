@@ -14,13 +14,13 @@
 #include "files.hpp"
 #include "images.hpp"
 #include "quitting.hpp"
-#include "setup.hpp"
 #include "tools.hpp"
 #include "tunes.hpp"
 
 #include "handlers.hpp"
 
 import core.config;
+import core.setup;
 import ts_cpp_idl.Shared;
 import ts_cpp_idl.crow_support;
 import tools.views;

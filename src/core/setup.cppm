@@ -1,3 +1,4 @@
+module;
 
 #include <cstdint>
 #include <iterator>
@@ -12,19 +13,14 @@
 #include "websocket.hpp"
 #include "window.hpp"
 
-#include "setup.hpp"
+export module core.setup;
 
 import core.config;
 import ts_cpp_idl.Shared;
 
-namespace {
+namespace setup {
 
 uint16_t port = 0;
-
-std::string get_root_url() {
-  return "http://localhost:" + std::to_string(setup::get_random_port()) +
-         "/www/index.html";
-}
 
 void configure_routes(crow::SimpleApp& app, const std::string& /*url*/) {
   // Define the routes:
@@ -49,14 +45,7 @@ crow::SimpleApp* the_app = nullptr;
 
 std::thread* server_thread = nullptr;
 
-void server_thread_func() {
-  the_app->port(setup::get_random_port()).multithreaded().run();
-}
-
-} // namespace
-namespace setup {
-
-uint16_t get_random_port() {
+export uint16_t get_random_port() {
   if (port == 0) {
     std::random_device rd;
     std::uniform_int_distribution<int> dist(0, 16383);
@@ -66,7 +55,16 @@ uint16_t get_random_port() {
   return port;
 }
 
-void init(int, const char* argv[]) {
+std::string get_root_url() {
+  return "http://localhost:" + std::to_string(setup::get_random_port()) +
+         "/www/index.html";
+}
+
+void server_thread_func() {
+  the_app->port(setup::get_random_port()).multithreaded().run();
+}
+
+export void init(int, const char* argv[]) {
   setlocale(LC_ALL, ".UTF8");
   files::set_program_location(argv[0]);
   std::string url = get_root_url();
@@ -80,7 +78,7 @@ void init(int, const char* argv[]) {
   server_thread->detach(); // Allow it to run independently
 }
 
-void run() {
+export void run() {
   // Wait for a while
   // TODO: this is dumb: I should be able to detect when the server
   // is ready, but this is good enough for now.
