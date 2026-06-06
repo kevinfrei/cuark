@@ -10,8 +10,7 @@
 #include <crow/http_response.h>
 #include <crow/websocket.h>
 
-#include "tools.hpp"
-
+import core.web;
 import ts_cpp_idl.Shared;
 import ts_cpp_idl.crow_support;
 import tools.views;
@@ -85,19 +84,19 @@ void Execute(crow::response& resp, std::string_view path, Func&& handle_call) {
   // many or too few, or if decoding fails, return a 404.
   for (auto const segment : path_chunks) {
     if (pos == segments.end()) {
-      tools::e404(resp, "Too many parameters: " + std::string(path));
+      web::e404(resp, "Too many parameters: " + std::string(path));
       return;
     }
-    if (auto decoded = tools::url_decode(segment)) {
+    if (auto decoded = web::url_decode(segment)) {
       *pos++ = std::move(*decoded);
     } else {
-      tools::e404(resp, "URL Decode Failed for " + std::string(segment));
+      web::e404(resp, "URL Decode Failed for " + std::string(segment));
       return;
     }
     count++;
   }
   if (count != ArgCount) {
-    tools::e404(resp, "Missing parameters from " + std::string(path));
+    web::e404(resp, "Missing parameters from " + std::string(path));
     return;
   }
 
@@ -123,7 +122,7 @@ void Execute(crow::response& resp, std::string_view path, Func&& handle_call) {
       }
     } catch (const std::exception& e) {
       // This should be a 500
-      tools::e404(resp, std::string("Internal Error: ") + e.what());
+      web::e404(resp, std::string("Internal Error: ") + e.what());
     }
   };
 

@@ -13,7 +13,6 @@
 
 #include "files.hpp"
 #include "quitting.hpp"
-#include "tools.hpp"
 #include "tunes.hpp"
 
 #include "handlers.hpp"
@@ -21,6 +20,7 @@
 import core.config;
 import core.images;
 import core.setup;
+import core.web;
 import ts_cpp_idl.Shared;
 import ts_cpp_idl.crow_support;
 import tools.views;
@@ -46,7 +46,7 @@ crow::response www_path(const crow::request&, const std::string& path) {
     // Replace "window.wsport = 42;" with the actual port number
     std::ifstream file(p);
     if (!file.is_open()) {
-      tools::e404(resp, "index.html not found");
+      web::e404(resp, "index.html not found");
       return resp;
     }
     std::string content((std::istreambuf_iterator<char>(file)),
@@ -139,7 +139,7 @@ crow::response tune(const crow::request& req, const std::string& path) {
   crow::response resp;
   auto maybe_song = tunes::get_tune(path);
   if (!maybe_song) {
-    tools::e404(resp, "Tune not found");
+    web::e404(resp, "Tune not found");
     return resp;
   }
   /*
@@ -227,7 +227,7 @@ crow::response api(const crow::request&, const std::string& the_path) {
   Shared::IpcCall callId =
       text::from_string<Shared::IpcCall>(path.substr(0, slash));
   if (!Shared::is_valid(callId)) {
-    tools::e404(resp, "Unknown API: " + the_path);
+    web::e404(resp, "Unknown API: " + the_path);
     return resp;
   }
   // TODO: Finish stuff from here:
@@ -239,7 +239,7 @@ crow::response api(const crow::request&, const std::string& the_path) {
     // Run the template magic via the table
     api_route->second(resp, path);
   } else {
-    tools::e404(resp, "API Handler not found: " + the_path);
+    web::e404(resp, "API Handler not found: " + the_path);
   }
   return resp;
 }

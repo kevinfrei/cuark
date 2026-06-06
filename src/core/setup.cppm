@@ -11,11 +11,11 @@ module;
 #include "handlers.hpp"
 #include "quitting.hpp"
 #include "websocket.hpp"
-#include "window.hpp"
 
 export module core.setup;
 
 import core.config;
+import core.web;
 import ts_cpp_idl.Shared;
 
 namespace setup {
@@ -86,7 +86,7 @@ export void run() {
   // Block until the page is closed
   std::string root = get_root_url();
   CROW_LOG_INFO << "*** Launching the browser:" << root;
-  window::open(root);
+  web::open(root);
   CROW_LOG_INFO << "******************** Shutting down server...";
   the_app->stop();
   if (server_thread->joinable()) {
