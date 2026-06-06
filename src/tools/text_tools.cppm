@@ -6,6 +6,7 @@ module;
 #include <codecvt>
 #include <cstdint>
 #include <cstdlib>
+#include <cwctype>
 #include <optional>
 #include <string>
 #include <string_view>
