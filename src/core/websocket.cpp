@@ -3,7 +3,6 @@
 
 #include <crow.h>
 
-#include "CommonTypes.hpp"
 #include "handlers.hpp"
 #include "websocket.hpp"
 

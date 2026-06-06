@@ -14,7 +14,7 @@
 #include "text_tools.hpp"
 #include "tools.hpp"
 
-#include "CommonTypes.hpp"
+import ts_cpp_idl.Shared;
 
 namespace handlers {
 

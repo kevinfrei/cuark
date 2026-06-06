@@ -6,7 +6,6 @@
 
 #include <crow.h>
 
-#include "CommonTypes.hpp"
 #include "config.hpp"
 #include "files.hpp"
 #include "handlers.hpp"
@@ -15,6 +14,8 @@
 #include "window.hpp"
 
 #include "setup.hpp"
+
+import ts_cpp_idl.Shared;
 
 namespace {
 
