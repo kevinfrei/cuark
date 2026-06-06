@@ -1,10 +1,7 @@
-#include <filesystem>
-#include <optional>
-#include <string>
-#include <string_view>
-
 #include <crow.h>
 #include <gtest/gtest.h>
+
+import std;
 
 import core.handler;
 import ts_cpp_idl.Shared;

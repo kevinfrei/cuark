@@ -1,16 +1,5 @@
 module;
 
-#include <chrono>
-#include <ctime>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <map>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <vector>
-
 #include <crow/http_response.h>
 #include <crow/json.h>
 #include <crow/logging.h>
@@ -18,6 +7,8 @@ module;
 #include <sago/platform_folders.h>
 
 export module core.file;
+
+import std;
 
 import core.web;
 import ts_cpp_idl.Shared;

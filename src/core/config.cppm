@@ -1,22 +1,11 @@
 module;
 
-#include <cstdint>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <map>
-#include <optional>
-#include <shared_mutex>
-#include <string>
-#include <string_view>
-#include <unordered_map>
-
+#include <crow.h>
 #include <sago/platform_folders.h>
 
-#include <crow.h>
-
 export module core.config;
+
+import std;
 
 import core.file;
 
