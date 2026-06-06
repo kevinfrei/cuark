@@ -26,6 +26,7 @@
         "@types/react": "19.2.17",
         "@types/react-dom": "19.2.3",
         "clang-format": "^1.8.0",
+        "cpp-mod-mgr": "^0.1.0",
         "crow-idl": "^0.8.1",
         "lint-staged": "^17.0.7",
         "prettier": "^3.8.3",
@@ -321,6 +322,8 @@
     "cli-truncate": ["cli-truncate@5.2.0", "", { "dependencies": { "slice-ansi": "^8.0.0", "string-width": "^8.2.0" } }, "sha512-xRwvIOMGrfOAnM1JYtqQImuaNtDEv9v6oIYAs4LIHwTiKee8uwvIi363igssOC0O5U04i4AlENs79LQLu9tEMw=="],
 
     "concat-map": ["concat-map@0.0.1", "", {}, "sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg=="],
+
+    "cpp-mod-mgr": ["cpp-mod-mgr@0.1.0", "", { "bin": { "cpp-mod-mgr": "dist/cpp-mod-mgr.js" } }, "sha512-argxWDyWZ3OvfltOQQJ50kKV9AV1YYDTkaXGVSqFINAc7fDz46jNaehR+OjGJj3b2TCUzDeBRRK7vifZ8kdldg=="],
 
     "crow-idl": ["crow-idl@0.8.1", "", { "dependencies": { "prettier-plugin-organize-imports": "^4.3.0" }, "peerDependencies": { "@freik/typechk": "^0.9.1", "prettier": "^3.8.1", "typescript": "^6.0.3" }, "bin": { "crow-idl": "build/src/crow-idl.js" } }, "sha512-wEBEiTzIhoJh8Ub+nPaj6ZKeaZg6h+UPtWpRtSLJWB3CGkpKHiTEYhWgj9qm3jwZ+j5M/MJH2BYWasajOpwMZw=="],
 

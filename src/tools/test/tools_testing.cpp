@@ -106,6 +106,7 @@ TEST(Files, RootIterator) {
   EXPECT_TRUE(len == 3); // Windows roots should all be chars (e.g. C:\)
 #else
   std::cout << "Testing on unknown OS\n";
+  EXPECT_FALSE(true);
 #endif
   EXPECT_FALSE(roots.empty());
   // No duplicates:
