@@ -12,13 +12,13 @@
 #include <crow/logging.h>
 
 #include "files.hpp"
-#include "quitting.hpp"
 #include "tunes.hpp"
 
 #include "handlers.hpp"
 
 import core.config;
 import core.images;
+import core.quitting;
 import core.setup;
 import core.web;
 import ts_cpp_idl.Shared;

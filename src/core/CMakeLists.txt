@@ -8,12 +8,12 @@ target_sources(
   FILE_SET
   CXX_MODULES
   FILES
-    config.cppm images.cppm setup.cppm web.cppm
+    config.cppm images.cppm quitting.cppm setup.cppm web.cppm
 )
 target_sources(
   core_lib
   PUBLIC
-    files.cpp handlers.cpp quitting.cpp transpile.cpp tunes.cpp websocket.cpp
+    files.cpp handlers.cpp transpile.cpp tunes.cpp websocket.cpp
 )
 target_include_directories(core_lib PUBLIC include)
 # This would be for core-specific header files:

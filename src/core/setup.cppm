@@ -9,12 +9,12 @@ module;
 
 #include "files.hpp"
 #include "handlers.hpp"
-#include "quitting.hpp"
 #include "websocket.hpp"
 
 export module core.setup;
 
 import core.config;
+import core.quitting;
 import core.web;
 import ts_cpp_idl.Shared;
 
