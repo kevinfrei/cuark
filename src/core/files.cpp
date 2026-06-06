@@ -9,13 +9,14 @@
 #include <portable-file-dialogs.h>
 #include <sago/platform_folders.h>
 
-#include "file_tools.hpp"
-#include "text_tools.hpp"
 #include "tools.hpp"
 
 #include "files.hpp"
 
 import ts_cpp_idl.Shared;
+import ts_cpp_idl.crow_support;
+import tools.text;
+import tools.file;
 
 namespace fs = std::filesystem;
 
@@ -417,7 +418,7 @@ std::string maybe_convert(const std::wstring& v) {
 
 std::vector<std::string> get_file_system_roots() {
   std::vector<std::string> res;
-  for (auto& i : drive_range{}) {
+  for (auto& i : file::drive_range{}) {
     res.emplace_back(maybe_convert(i.native()));
   }
   return res;
@@ -425,7 +426,7 @@ std::vector<std::string> get_file_system_roots() {
 
 std::map<std::string, std::string> get_named_locations() {
   std::map<std::string, std::string> res;
-  res.emplace("Home", files::get_home_dir());
+  res.emplace("Home", file::get_home_dir());
   res.emplace("Documents", sago::getDocumentsFolder());
   res.emplace("Downloads", sago::getDownloadFolder());
   res.emplace("Music", sago::getMusicFolder());
@@ -466,7 +467,7 @@ std::vector<Shared::FileSystemItem> get_folder_contents(
   try {
     for (const auto& entry : fs::directory_iterator(dir_path)) {
       try {
-        if (show_hidden || !is_hidden_file(entry.path())) {
+        if (show_hidden || !file::is_hidden_file(entry.path())) {
           Shared::FileSystemItem fsi;
           fsi.file = maybe_convert(entry.path().filename().native());
           fsi.type = get_type(entry);
