@@ -10,11 +10,12 @@
 #include <crow/http_response.h>
 #include <crow/websocket.h>
 
-#include "range_tools.hpp"
-#include "text_tools.hpp"
 #include "tools.hpp"
 
 import ts_cpp_idl.Shared;
+import ts_cpp_idl.crow_support;
+import tools.views;
+import tools.text;
 
 namespace handlers {
 

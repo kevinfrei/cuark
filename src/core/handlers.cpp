@@ -15,15 +15,16 @@
 #include "files.hpp"
 #include "images.hpp"
 #include "quitting.hpp"
-#include "range_tools.hpp"
 #include "setup.hpp"
-#include "text_tools.hpp"
 #include "tools.hpp"
 #include "tunes.hpp"
 
 #include "handlers.hpp"
 
 import ts_cpp_idl.Shared;
+import ts_cpp_idl.crow_support;
+import tools.views;
+import tools.text;
 
 namespace handlers {
 
