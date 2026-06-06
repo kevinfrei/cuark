@@ -12,7 +12,6 @@
 #include <crow/logging.h>
 
 #include "files.hpp"
-#include "tunes.hpp"
 
 #include "handlers.hpp"
 
@@ -20,6 +19,7 @@ import core.config;
 import core.images;
 import core.quitting;
 import core.setup;
+import core.tune;
 import core.web;
 import ts_cpp_idl.Shared;
 import ts_cpp_idl.crow_support;
