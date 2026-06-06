@@ -11,7 +11,6 @@
 #include <crow.h>
 #include <crow/logging.h>
 
-#include "CommonTypes.hpp"
 #include "config.hpp"
 #include "files.hpp"
 #include "images.hpp"
@@ -23,6 +22,8 @@
 #include "tunes.hpp"
 
 #include "handlers.hpp"
+
+import ts_cpp_idl.Shared;
 
 namespace handlers {
 

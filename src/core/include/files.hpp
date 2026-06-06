@@ -1,13 +1,16 @@
 #pragma once
 
 #include <filesystem>
+#include <map>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include <crow/http_response.h>
 
-#include "CommonTypes.hpp"
+import ts_cpp_idl.Shared;
+
 namespace files {
 
 void set_program_location(const char* argv0);

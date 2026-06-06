@@ -9,12 +9,13 @@
 #include <portable-file-dialogs.h>
 #include <sago/platform_folders.h>
 
-#include "CommonTypes.hpp"
 #include "file_tools.hpp"
 #include "text_tools.hpp"
 #include "tools.hpp"
 
 #include "files.hpp"
+
+import ts_cpp_idl.Shared;
 
 namespace fs = std::filesystem;
 

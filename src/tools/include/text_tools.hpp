@@ -13,7 +13,7 @@
 
 #include <crow.h>
 
-#include "CommonTypes.hpp"
+import ts_cpp_idl.crow_support;
 
 namespace text {
 
