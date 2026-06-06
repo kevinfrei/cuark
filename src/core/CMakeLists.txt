@@ -10,6 +10,7 @@ target_sources(
   FILES
     config.cppm
     files.cppm
+    handlers.cppm
     images.cppm
     quitting.cppm
     setup.cppm
@@ -18,8 +19,6 @@ target_sources(
     web.cppm
     websocket.cppm
 )
-target_sources(core_lib PUBLIC handlers.cpp)
-target_include_directories(core_lib PUBLIC include)
 # This would be for core-specific header files:
 # target_include_directories(core_lib PRIVATE impl)
 

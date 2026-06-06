@@ -1,3 +1,5 @@
+module;
+
 #include <array>
 #include <cctype>
 #include <filesystem>
@@ -11,13 +13,12 @@
 #include <crow.h>
 #include <crow/logging.h>
 
-#include "handlers.hpp"
+export module core.handler;
 
 import core.config;
 import core.file;
 import core.images;
 import core.quitting;
-import core.setup;
 import core.tune;
 import core.web;
 import ts_cpp_idl.Shared;
@@ -27,7 +28,165 @@ import tools.text;
 
 namespace handlers {
 
-crow::response www_path(const crow::request&, const std::string& path) {
+using RouteHandler = std::function<void(crow::response&, std::string_view)>;
+
+// A static registry to hold your routes
+std::unordered_map<Shared::IpcCall, RouteHandler> RouteTable;
+
+namespace _internal_glue {
+
+// This is the "glue" that hides the template types from the table
+
+#pragma region Template Magic for API Calls
+
+// Trait to detect std::optional
+template <typename T>
+struct is_optional : std::false_type {};
+
+template <typename T>
+struct is_optional<std::optional<T>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_optional_v = is_optional<T>::value;
+
+// Helper stuff to index a parameter-pack of argument types. Takes the index and
+// the parameter-pack so it can be used at namespace scope.
+
+template <typename T>
+void marshall_response(crow::response& resp, T&& result) {
+  using RawT = std::decay_t<T>;
+  if constexpr (is_optional_v<RawT>) {
+    if (!result) {
+      resp.set_header("Content-Type", "application/json");
+      resp.body = "null";
+    } else {
+      // Recursively unwrap the value inside the optional
+      return marshall_response(resp, std::move(*result));
+    }
+  } else if constexpr (std::is_same_v<RawT, Shared::MimeData>) {
+    resp.set_header("Content-Type", result.mime);
+    resp.body = std::move(result.data);
+  } else if constexpr (std::is_convertible_v<RawT, std::string_view>) {
+    resp.set_header("Content-Type", "text/plain");
+    resp.body = std::string(std::forward<T>(result));
+  } else if constexpr (std::is_integral_v<RawT>) {
+    resp.set_header("Content-Type", "text/plain");
+    resp.body = std::to_string(result);
+  } else {
+    resp.set_header("Content-Type", "application/json");
+    // Ensure to_json is available in the scope for the specific type
+    resp.body = to_json(std::forward<T>(result)).dump();
+  }
+  resp.code = 200;
+}
+template <size_t ArgIndex, typename... Args>
+using ArgT = std::tuple_element_t<ArgIndex, std::tuple<std::decay_t<Args>...>>;
+
+// Internal worker that deduces arg types
+template <typename... Args, typename Func>
+void Execute(crow::response& resp, std::string_view path, Func&& handle_call) {
+  constexpr size_t ArgCount = sizeof...(Args);
+  std::array<std::string, ArgCount> segments;
+  auto pos = segments.begin();
+  auto path_chunks = path | views::split_string_view('/');
+  size_t count = 0;
+  // First, URL-decode each segment into the segments array. If there are too
+  // many or too few, or if decoding fails, return a 404.
+  for (auto const segment : path_chunks) {
+    if (pos == segments.end()) {
+      web::e404(resp, "Too many parameters: " + std::string(path));
+      return;
+    }
+    if (auto decoded = web::url_decode(segment)) {
+      *pos++ = std::move(*decoded);
+    } else {
+      web::e404(resp, "URL Decode Failed for " + std::string(segment));
+      return;
+    }
+    count++;
+  }
+  if (count != ArgCount) {
+    web::e404(resp, "Missing parameters from " + std::string(path));
+    return;
+  }
+
+  // Unpack and Call
+  auto call_and_respond = [&]<size_t... ArgIndex>(
+      std::index_sequence<ArgIndex...>) {
+    using ReturnType = std::invoke_result_t<Func, std::decay_t<Args>...>;
+
+    try {
+      // Returning function: Execute and encode result
+      // Use the Is... index pack to pick the corresponding type from the
+      // Args... pack by indexing into a tuple of the decayed argument types.
+      if constexpr (std::is_void_v<ReturnType>) {
+        // Void function: Just execute and return 204 (No Content) or 200
+        handle_call(
+            text::from_string<ArgT<ArgIndex, Args...>>(segments[ArgIndex])...);
+        resp.code = 204;
+      } else {
+        auto result = handle_call(
+            text::from_string<ArgT<ArgIndex, Args...>>(segments[ArgIndex])...);
+        marshall_response(resp, result);
+        resp.code = 200;
+      }
+    } catch (const std::exception& e) {
+      // This should be a 500
+      web::e404(resp, std::string("Internal Error: ") + e.what());
+    }
+  };
+
+  call_and_respond(std::make_index_sequence<ArgCount>{});
+}
+
+// Overload A: For regular functions: bool myFunc(string_view, int)
+template <typename R, typename... Args>
+void InternalCall(crow::response& resp,
+                  std::string_view remaining,
+                  R (*func)(Args...),
+                  R (*)(Args...)) {
+  Execute<Args...>(resp, remaining, func);
+}
+
+// Overload B: For lambdas/functors: has an operator()
+template <typename Func, typename R, typename... Args>
+void InternalCall(crow::response& resp,
+                  std::string_view remaining,
+                  Func&& handle_call,
+                  R (std::remove_reference_t<Func>::*)(Args...) const) {
+  Execute<Args...>(resp, remaining, std::forward<Func>(handle_call));
+}
+
+// "Public" API to use
+template <typename Func>
+void ValidateAndCall(crow::response& resp,
+                     std::string_view path,
+                     Func&& handle_call) {
+  // Pass the pointer to the lambda's operator() to trigger deduction
+  // Use constexpr if to decide which pointer to pass for deduction
+  if constexpr (std::is_function_v<
+                    std::remove_pointer_t<std::remove_reference_t<Func>>>) {
+    InternalCall(resp, path, handle_call, handle_call);
+  } else {
+    InternalCall(resp,
+                 path,
+                 std::forward<Func>(handle_call),
+                 &std::remove_reference_t<Func>::operator());
+  }
+}
+
+} // namespace _internal_glue
+
+// The helper to "erase" the types
+export template <typename Func>
+void register_route(const Shared::IpcCall& call, Func&& handler) {
+  RouteTable[call] = [handler = std::forward<Func>(handler)](
+                         crow::response& resp, std::string_view path) {
+    _internal_glue::ValidateAndCall(resp, path, handler);
+  };
+}
+
+export crow::response www_path(const crow::request&, const std::string& path) {
   quitting::keep_alive();
 
   CROW_LOG_INFO << "Path: " << path;
@@ -52,7 +211,7 @@ crow::response www_path(const crow::request&, const std::string& path) {
                         std::istreambuf_iterator<char>());
     file.close();
     // Replace the placeholder with the actual port number
-    std::string wsport = std::to_string(setup::get_random_port());
+    std::string wsport = std::to_string(web::get_random_port());
     size_t pos = content.find("window.wsport = 42;");
     if (pos != std::string::npos) {
       content.replace(pos, 20, "window.wsport = " + wsport + ";");
@@ -75,7 +234,7 @@ crow::response www_path(const crow::request&, const std::string& path) {
   return resp;
 }
 
-crow::response images(const crow::request&, const std::string& query) {
+export crow::response images(const crow::request&, const std::string& query) {
   quitting::keep_alive();
   crow::response resp;
   std::filesystem::path p = image::get_image_path(query);
@@ -85,7 +244,7 @@ crow::response images(const crow::request&, const std::string& query) {
   return resp;
 }
 
-crow::response keepalive() {
+export crow::response keepalive() {
   quitting::keep_alive();
   crow::response resp;
   resp.code = 200;
@@ -94,7 +253,7 @@ crow::response keepalive() {
   return resp;
 }
 
-crow::response quit() {
+export crow::response quit() {
   quitting::really_quit();
   return crow::response(200);
 }
@@ -133,7 +292,7 @@ std::optional<range_header> validate_range_header(const std::string& range) {
   return res;
 }
 
-crow::response tune(const crow::request& req, const std::string& path) {
+export crow::response tune(const crow::request& req, const std::string& path) {
   quitting::keep_alive();
   crow::response resp;
   auto maybe_song = tunes::get_tune(path);
@@ -196,9 +355,7 @@ crow::response tune(const crow::request& req, const std::string& path) {
   return resp;
 }
 
-std::unordered_map<Shared::IpcCall, RouteHandler> RouteTable;
-
-void initialize_default_apis() {
+export void initialize_default_apis() {
   register_route(Shared::IpcCall::WriteToStorage, config::write_to_storage);
   register_route(Shared::IpcCall::ReadFromStorage, config::read_from_storage);
   register_route(Shared::IpcCall::DeleteFromStorage,
@@ -214,7 +371,7 @@ void initialize_default_apis() {
 
 // The URL comes in looking like this:
 // https://.../api/<call-id>{/arg1/arg2/etc...} so the_path is
-crow::response api(const crow::request&, const std::string& the_path) {
+export crow::response api(const crow::request&, const std::string& the_path) {
   quitting::keep_alive();
   std::string_view path(the_path);
   CROW_LOG_DEBUG << "API Path: " << path;
@@ -244,9 +401,9 @@ crow::response api(const crow::request&, const std::string& the_path) {
 }
 
 // TODO: Switch this over to the register_route mechanism, too.
-void socket_message(crow::websocket::connection& /* conn */,
-                    const std::string& data,
-                    bool /* is_binary */) {
+export void socket_message(crow::websocket::connection& /* conn */,
+                           const std::string& data,
+                           bool /* is_binary */) {
   CROW_LOG_INFO << "Got a message from the client:" << data;
   // Message is IpcMessage;[json-formatted array of arguments]
   size_t pos = data.find(';');

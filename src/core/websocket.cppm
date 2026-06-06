@@ -5,9 +5,10 @@ module;
 
 #include <crow.h>
 
-#include "handlers.hpp"
-
 export module core.websocket;
+
+import core.handler;
+import ts_cpp_idl.Shared;
 
 namespace websocket {
 

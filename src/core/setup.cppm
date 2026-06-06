@@ -2,25 +2,21 @@ module;
 
 #include <cstdint>
 #include <iterator>
-#include <random>
 #include <string>
 
 #include <crow.h>
-
-#include "handlers.hpp"
 
 export module core.setup;
 
 import core.config;
 import core.file;
+import core.handler;
 import core.quitting;
 import core.web;
 import core.websocket;
 import ts_cpp_idl.Shared;
 
 namespace setup {
-
-uint16_t port = 0;
 
 void configure_routes(crow::SimpleApp& app, const std::string& /*url*/) {
   // Define the routes:
@@ -45,23 +41,13 @@ crow::SimpleApp* the_app = nullptr;
 
 std::thread* server_thread = nullptr;
 
-export uint16_t get_random_port() {
-  if (port == 0) {
-    std::random_device rd;
-    std::uniform_int_distribution<int> dist(0, 16383);
-    port = 49152 + static_cast<uint16_t>(dist(rd)); // Use ports in the range
-                                                    // 49152-65535
-  }
-  return port;
-}
-
 std::string get_root_url() {
-  return "http://localhost:" + std::to_string(setup::get_random_port()) +
+  return "http://localhost:" + std::to_string(web::get_random_port()) +
          "/www/index.html";
 }
 
 void server_thread_func() {
-  the_app->port(setup::get_random_port()).multithreaded().run();
+  the_app->port(web::get_random_port()).multithreaded().run();
 }
 
 export void init(int, const char* argv[]) {

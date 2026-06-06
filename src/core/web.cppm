@@ -4,6 +4,7 @@ module;
 #include <iomanip>
 #include <iostream>
 #include <optional>
+#include <random>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -14,6 +15,18 @@ module;
 export module core.web;
 
 namespace web {
+
+uint16_t port = 0;
+
+export uint16_t get_random_port() {
+  if (port == 0) {
+    std::random_device rd;
+    std::uniform_int_distribution<int> dist(0, 16383);
+    port = 49152 + static_cast<uint16_t>(dist(rd)); // Use ports in the range
+                                                    // 49152-65535
+  }
+  return port;
+}
 
 export void e404(crow::response& resp, const std::string& message) {
   CROW_LOG_ERROR << "Error 404: " << message;
