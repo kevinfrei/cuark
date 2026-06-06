@@ -13,11 +13,12 @@ target_sources(
     images.cppm
     quitting.cppm
     setup.cppm
+    transpile.cppm
     tunes.cppm
     web.cppm
     websocket.cppm
 )
-target_sources(core_lib PUBLIC handlers.cpp transpile.cpp)
+target_sources(core_lib PUBLIC handlers.cpp)
 target_include_directories(core_lib PUBLIC include)
 # This would be for core-specific header files:
 # target_include_directories(core_lib PRIVATE impl)

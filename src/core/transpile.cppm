@@ -1,3 +1,5 @@
+module;
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -5,7 +7,10 @@
 #include <reproc++/drain.hpp>
 #include <reproc++/reproc.hpp>
 
-std::string transpileWithBun(const std::string& tsCode) {
+export module core.transpile;
+
+namespace transpile {
+export std::string bun_ts_to_js(const std::string& tsCode) {
   reproc::process bun;
 
   // Define the command (read from stdin)
@@ -61,3 +66,5 @@ std::string transpileWithBun(const std::string& tsCode) {
 
   return jsOutput;
 }
+
+} // namespace transpile
