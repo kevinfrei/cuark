@@ -1,19 +1,10 @@
 module;
 
-#include <algorithm>
-#include <cctype>
-#include <charconv>
-#include <codecvt>
-#include <cstdint>
-#include <cstdlib>
-#include <cwctype>
-#include <optional>
-#include <string>
-#include <string_view>
-
 #include <crow/json.h>
 
 export module tools.text;
+
+import std;
 
 import ts_cpp_idl.crow_support;
 

@@ -1,10 +1,8 @@
 module;
 
-#include <memory>
-#include <ranges>
-#include <string_view>
-
 export module tools.views;
+
+import std;
 
 export {
 
