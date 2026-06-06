@@ -6,7 +6,7 @@
 
 #include "files.hpp"
 
-#include "images.hpp"
+import core.images;
 
 #if defined(_WIN32)
 static const char* argv0 = "core_testing.exe";

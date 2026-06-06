@@ -1,15 +1,17 @@
+module;
+
 #include <filesystem>
 #include <string>
 
 #include "files.hpp"
 
-#include "images.hpp"
+export module core.images;
 
 import core.config;
 
 namespace image {
 
-std::filesystem::path get_image_path(const std::string& query_path) {
+export std::filesystem::path get_image_path(const std::string& query_path) {
   auto slash = query_path.find('/');
   if (slash != std::string::npos) {
     // With a slash, we can have 'album' or 'artist' followed by the key, and we

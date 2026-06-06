@@ -8,13 +8,12 @@ target_sources(
   FILE_SET
   CXX_MODULES
   FILES
-    config.cppm setup.cppm
+    config.cppm images.cppm setup.cppm
 )
 target_sources(
   core_lib
   PUBLIC
     files.cpp
-    images.cpp
     handlers.cpp
     quitting.cpp
     tools.cpp
