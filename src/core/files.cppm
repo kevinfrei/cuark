@@ -1,8 +1,15 @@
+module;
+
 #include <chrono>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <vector>
 
 #include <crow/http_response.h>
 #include <crow/json.h>
@@ -10,7 +17,7 @@
 #include <portable-file-dialogs.h>
 #include <sago/platform_folders.h>
 
-#include "files.hpp"
+export module core.file;
 
 import core.web;
 import ts_cpp_idl.Shared;
@@ -25,7 +32,7 @@ namespace files {
 fs::path program_location;
 fs::path web_dir;
 
-void set_program_location(const char* argv0) {
+export void set_program_location(const char* argv0) {
   if (argv0 == nullptr || argv0[0] == '\0') {
     CROW_LOG_ERROR << "argv[0] is empty, falling back to just 'cuark'";
     program_location = fs::canonical(fs::current_path() / "cuark");
@@ -41,7 +48,7 @@ void set_program_location(const char* argv0) {
   }
 }
 
-fs::path get_web_dir() {
+export fs::path get_web_dir() {
   if (web_dir.empty()) {
     fs::path cur = program_location;
     while (!fs::exists(cur / "web" / "index.html")) {
@@ -52,11 +59,11 @@ fs::path get_web_dir() {
   return web_dir;
 }
 
-fs::path get_app_name() {
+export fs::path get_app_name() {
   return program_location.stem();
 }
 
-std::string path_to_mime_type(const fs::path& file_path) {
+export std::string path_to_mime_type(const fs::path& file_path) {
   const std::string extension = file_path.extension().generic_string();
   if (extension == ".txt") {
     return "text/plain";
@@ -89,9 +96,6 @@ std::string path_to_mime_type(const fs::path& file_path) {
   return "text/html";
 }
 
-fs::path file_name_encode(std::string_view filename);
-std::optional<std::string> file_name_decode(std::string_view filename);
-
 /*
 std::string LoadFileWithMimeType(const fs::path& path,
                                  std::string& mime_type) {
@@ -121,7 +125,7 @@ std::string LoadFileWithMimeType(const fs::path& path,
 // In addition, Windows, Mac, and Linux all *may* have case-insensitive
 // filesystems, so we need to encode filenames in a way that keeps all
 // that in mind.
-fs::path file_name_encode(std::string_view filename) {
+export fs::path file_name_encode(std::string_view filename) {
   // Encode the string provided as a valid, unique filename, which can
   // be re-translated back to it's original value.
   std::ostringstream oss;
@@ -220,7 +224,7 @@ fs::path file_name_encode(std::string_view filename) {
   return oss.str();
 }
 
-std::optional<std::string> file_name_decode(std::string_view filename) {
+export std::optional<std::string> file_name_decode(std::string_view filename) {
   // Decode the encoded filename back to its original form.
   std::ostringstream oss;
   bool is_upper = true; // We start in uppercase mode
@@ -304,7 +308,7 @@ std::optional<std::string> file_name_decode(std::string_view filename) {
   }
 }
 
-std::optional<std::string> read_file(fs::path file_path) {
+export std::optional<std::string> read_file(fs::path file_path) {
   constexpr size_t read_size = 4096;
   std::ifstream stream(file_path);
   stream.exceptions(std::ios_base::badbit);
@@ -331,7 +335,7 @@ void show_opt(std::string_view name, const std::optional<T>& opt) {
   }
 }
 
-std::string new_folder_picker(
+export std::string new_folder_picker(
     const std::optional<Shared::OpenDialogOptions>& options) {
   if (options) {
     CROW_LOG_INFO << "Options: ";
@@ -356,7 +360,7 @@ std::string new_folder_picker(
   return result;
 }
 
-void folder_picker(crow::response& resp, std::string_view data) {
+export void folder_picker(crow::response& resp, std::string_view data) {
   // TODO: Allow data to specify a title, default path or a platform path.
   // Use the sago::platform_folders thing, as it's started working in Conan
   // with 4.3.0
@@ -416,7 +420,7 @@ std::string maybe_convert(const std::wstring& v) {
   return text::convert_string<char>(v);
 }
 
-std::vector<std::string> get_file_system_roots() {
+export std::vector<std::string> get_file_system_roots() {
   std::vector<std::string> res;
   for (auto& i : file::drive_range{}) {
     res.emplace_back(maybe_convert(i.native()));
@@ -424,7 +428,7 @@ std::vector<std::string> get_file_system_roots() {
   return res;
 }
 
-std::map<std::string, std::string> get_named_locations() {
+export std::map<std::string, std::string> get_named_locations() {
   std::map<std::string, std::string> res;
   res.emplace("Home", file::get_home_dir());
   res.emplace("Documents", sago::getDocumentsFolder());
@@ -460,7 +464,7 @@ double get_date_double(const fs::file_time_type& ftime) {
          1000;
 }
 
-std::vector<Shared::FileSystemItem> get_folder_contents(
+export std::vector<Shared::FileSystemItem> get_folder_contents(
     std::string_view file_path, bool show_hidden) {
   std::vector<Shared::FileSystemItem> res;
   fs::path dir_path = file_path; // Current directory

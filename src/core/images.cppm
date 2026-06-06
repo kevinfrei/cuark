@@ -3,11 +3,10 @@ module;
 #include <filesystem>
 #include <string>
 
-#include "files.hpp"
-
 export module core.images;
 
 import core.config;
+import core.file;
 
 namespace image {
 

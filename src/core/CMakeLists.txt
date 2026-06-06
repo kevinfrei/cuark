@@ -9,6 +9,7 @@ target_sources(
   CXX_MODULES
   FILES
     config.cppm
+    files.cppm
     images.cppm
     quitting.cppm
     setup.cppm
@@ -16,14 +17,14 @@ target_sources(
     web.cppm
     websocket.cppm
 )
-target_sources(core_lib PUBLIC files.cpp handlers.cpp transpile.cpp)
+target_sources(core_lib PUBLIC handlers.cpp transpile.cpp)
 target_include_directories(core_lib PUBLIC include)
 # This would be for core-specific header files:
 # target_include_directories(core_lib PRIVATE impl)
 
 if(APPLE)
   set_source_files_properties(
-    files.cpp
+    files.cppm
     PROPERTIES
     COMPILE_FLAGS
     "-Wno-deprecated-declarations"

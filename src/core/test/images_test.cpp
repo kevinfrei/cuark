@@ -4,8 +4,7 @@
 #include <crow.h>
 #include <gtest/gtest.h>
 
-#include "files.hpp"
-
+import core.file;
 import core.images;
 
 #if defined(_WIN32)

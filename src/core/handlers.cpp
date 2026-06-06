@@ -11,11 +11,10 @@
 #include <crow.h>
 #include <crow/logging.h>
 
-#include "files.hpp"
-
 #include "handlers.hpp"
 
 import core.config;
+import core.file;
 import core.images;
 import core.quitting;
 import core.setup;

@@ -7,12 +7,12 @@ module;
 
 #include <crow.h>
 
-#include "files.hpp"
 #include "handlers.hpp"
 
 export module core.setup;
 
 import core.config;
+import core.file;
 import core.quitting;
 import core.web;
 import core.websocket;

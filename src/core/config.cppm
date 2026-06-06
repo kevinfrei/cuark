@@ -14,9 +14,11 @@ module;
 
 #include <sago/platform_folders.h>
 
-#include "files.hpp"
+#include <crow.h>
 
 export module core.config;
+
+import core.file;
 
 // Cuz I'm lazy:
 namespace fs = std::filesystem;
