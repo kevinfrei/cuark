@@ -1,10 +1,18 @@
 module;
 
+#include <map>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
 #include <crow/json.h>
 
 export module ts_cpp_idl.crow_support;
-
-import std;
 
 using std::map;
 using std::optional;

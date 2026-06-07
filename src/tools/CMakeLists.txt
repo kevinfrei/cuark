@@ -1,4 +1,5 @@
 # A few little tools for everyone to use
+
 add_library(os_module_p)
 target_sources(
   os_module_p
@@ -22,7 +23,6 @@ target_sources(
     text_tools.cppm
     tuple_hash.cppm
 )
-
 # Link the dependencies with our binary
 target_link_libraries(tools_lib PUBLIC ipc_lib os_module_p ${CROW_LIB})
 
