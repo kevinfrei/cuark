@@ -1,3 +1,5 @@
+#include <chrono>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -5,8 +7,11 @@
 #include <crow/http_response.h>
 #include <crow/logging.h>
 #include <portable-file-dialogs.h>
+#include <sago/platform_folders.h>
 
 #include "CommonTypes.hpp"
+#include "file_tools.hpp"
+#include "text_tools.hpp"
 #include "tools.hpp"
 
 #include "files.hpp"
@@ -399,6 +404,83 @@ void folder_picker(crow::response& resp, std::string_view data) {
     resp.code = 200; // OK
   }
   */
+}
+
+std::string maybe_convert(const std::string& v) {
+  return v;
+}
+
+std::string maybe_convert(const std::wstring& v) {
+  return text::convert_string<char>(v);
+}
+
+std::vector<std::string> get_file_system_roots() {
+  std::vector<std::string> res;
+  for (auto& i : drive_range{}) {
+    res.emplace_back(maybe_convert(i.native()));
+  }
+  return res;
+}
+
+std::map<std::string, std::string> get_named_locations() {
+  std::map<std::string, std::string> res;
+  res.emplace("Home", files::get_home_dir());
+  res.emplace("Documents", sago::getDocumentsFolder());
+  res.emplace("Downloads", sago::getDownloadFolder());
+  res.emplace("Music", sago::getMusicFolder());
+  res.emplace("Video", sago::getVideoFolder());
+  res.emplace("Desktop", sago::getDesktopFolder());
+  res.emplace("Pictures", sago::getPicturesFolder());
+  return res;
+}
+
+std::string get_type(const std::filesystem::directory_entry& i) {
+  if (i.is_directory()) {
+    return "directory";
+  }
+  if (i.is_symlink()) {
+    return "symlink";
+  }
+  if (i.is_regular_file()) {
+    return "file";
+  }
+  return "other";
+}
+
+double get_date_double(const fs::file_time_type& ftime) {
+  // Convert a file_time_type to a double representing milliseconds since the
+  // epoch.
+  auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+      ftime - fs::file_time_type::clock::now() +
+      std::chrono::system_clock::now());
+  return sctp.time_since_epoch().count() /
+         static_cast<double>(std::chrono::system_clock::duration::period::den) *
+         1000;
+}
+
+std::vector<Shared::FileSystemItem> get_folder_contents(
+    std::string_view file_path, bool show_hidden) {
+  std::vector<Shared::FileSystemItem> res;
+  fs::path dir_path = file_path; // Current directory
+  try {
+    for (const auto& entry : fs::directory_iterator(dir_path)) {
+      try {
+        if (show_hidden || !is_hidden_file(entry.path())) {
+          Shared::FileSystemItem fsi;
+          fsi.file = maybe_convert(entry.path().filename().native());
+          fsi.type = get_type(entry);
+          fsi.size = entry.is_regular_file() ? entry.file_size() : 0;
+          fsi.date = get_date_double(entry.last_write_time());
+          res.emplace_back(fsi);
+        }
+      } catch (const fs::filesystem_error& e) {
+        std::cerr << e.what() << '\n';
+      }
+    }
+  } catch (const fs::filesystem_error& e) {
+    std::cerr << e.what() << '\n';
+  }
+  return res;
 }
 
 } // namespace files

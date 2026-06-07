@@ -203,6 +203,12 @@ void initialize_default_apis() {
   register_route(Shared::IpcCall::DeleteFromStorage,
                  config::delete_from_storage);
   register_route(Shared::IpcCall::ShowOpenDialog, files::new_folder_picker);
+  register_route(Shared::IpcCall::GetFileSystemRoots,
+                 files::get_file_system_roots);
+  register_route(Shared::IpcCall::GetNamedLocations,
+                 files::get_named_locations);
+  register_route(Shared::IpcCall::GetFolderContents,
+                 files::get_folder_contents);
 }
 
 // The URL comes in looking like this:
@@ -223,7 +229,9 @@ crow::response api(const crow::request&, const std::string& the_path) {
     return resp;
   }
   // TODO: Finish stuff from here:
-  path = path.substr(slash + 1, path.length() - (slash + 1));
+  path = (slash < path.length())
+             ? path.substr(slash + 1, path.length() - (slash + 1))
+             : "";
   auto api_route = RouteTable.find(callId);
   if (api_route != RouteTable.end()) {
     // Run the template magic via the table

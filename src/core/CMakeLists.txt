@@ -20,6 +20,15 @@ target_include_directories(core_lib PUBLIC include)
 # This would be for core-specific header files:
 # target_include_directories(core_lib PRIVATE impl)
 
+if(APPLE)
+  set_source_files_properties(
+    files.cpp
+    PROPERTIES
+    COMPILE_FLAGS
+    "-Wno-deprecated-declarations"
+  )
+endif()
+
 # Link the dependencies with our binary
 target_link_libraries(
   core_lib

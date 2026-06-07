@@ -77,51 +77,6 @@ inline std::enable_if_t<is_enum_class_v<T>, crow::json::wvalue> to_json(
   return crow::json::wvalue(static_cast<std::underlying_type_t<T>>(value));
 }
 
-// A little extra work for string constants:
-
-// Function to manually escape a string for JSON
-inline std::string escape_json_string(std::string_view sv) {
-  std::ostringstream o;
-  for (char c : sv) {
-    if (c == '"') {
-      o << "\\\"";
-    } else if (c == '\\') {
-      o << "\\\\";
-    } else if (c == '\b') {
-      o << "\\b";
-    } else if (c == '\f') {
-      o << "\\f";
-    } else if (c == '\n') {
-      o << "\\n";
-    } else if (c == '\r') {
-      o << "\\r";
-    } else if (c == '\t') {
-      o << "\\t";
-    } else if (static_cast<unsigned char>(c) < 0x20 ||
-               static_cast<unsigned char>(c) > 0x7e) {
-      // Escape other control characters and non-ASCII characters as \uXXXX
-      o << "\\u" << std::hex << std::setw(4) << std::setfill('0')
-        << static_cast<int>(static_cast<unsigned char>(c));
-    } else {
-      o << c;
-    }
-  }
-  return o.str();
-}
-
-template <>
-struct impl_to_json<std::string> {
-  static inline crow::json::wvalue process(const std::string& value) {
-    return crow::json::wvalue(escape_json_string(value));
-  }
-};
-template <>
-struct impl_to_json<char*> {
-  static inline crow::json::wvalue process(const char* value) {
-    return crow::json::wvalue(escape_json_string(value));
-  }
-};
-
 template <>
 struct impl_to_json<uint64_t> {
   static inline crow::json::wvalue process(const uint64_t& value) {
@@ -142,10 +97,11 @@ struct impl_to_json<int64_t> {
   }
 };
 
+// A little extra work for string_view's:
 template <>
 struct impl_to_json<std::string_view> {
   static inline crow::json::wvalue process(std::string_view value) {
-    return crow::json::wvalue(escape_json_string(value));
+    return crow::json::wvalue(std::string{value});
   }
 };
 
@@ -835,6 +791,9 @@ enum class IpcCall : std::uint8_t {
   AsyncData = 9,
   MenuAction = 10,
   ShowOpenDialog = 11,
+  GetFileSystemRoots = 12,
+  GetNamedLocations = 13,
+  GetFolderContents = 14,
 };
 
 inline constexpr bool is_valid(IpcCall _value) {
@@ -851,6 +810,9 @@ inline constexpr bool is_valid(IpcCall _value) {
     case IpcCall::AsyncData:
     case IpcCall::MenuAction:
     case IpcCall::ShowOpenDialog:
+    case IpcCall::GetFileSystemRoots:
+    case IpcCall::GetNamedLocations:
+    case IpcCall::GetFolderContents:
       return true;
     default:
       return false;
@@ -883,6 +845,12 @@ inline constexpr std::string_view to_name(IpcCall _value) {
       return "MenuAction";
     case IpcCall::ShowOpenDialog:
       return "ShowOpenDialog";
+    case IpcCall::GetFileSystemRoots:
+      return "GetFileSystemRoots";
+    case IpcCall::GetNamedLocations:
+      return "GetNamedLocations";
+    case IpcCall::GetFolderContents:
+      return "GetFolderContents";
     default:
       return "<unknown>";
   }
@@ -914,6 +882,12 @@ inline constexpr std::string_view to_string(IpcCall _value) {
       return "10";
     case IpcCall::ShowOpenDialog:
       return "11";
+    case IpcCall::GetFileSystemRoots:
+      return "12";
+    case IpcCall::GetNamedLocations:
+      return "13";
+    case IpcCall::GetFolderContents:
+      return "14";
     default:
       return "<unknown>";
   }
@@ -1051,6 +1025,15 @@ struct OpenDialogOptions {
   std::optional<bool> multiSelections;
   std::optional<std::vector<FileFilterItem>> filters;
 };
+using NamedLocations = std::map<std::string, std::string>;
+
+struct FileSystemItem {
+  std::string file;
+  double date;
+  std::uint64_t size;
+  std::string type;
+};
+using FolderContents = std::vector<FileSystemItem>;
 
 } // namespace Shared
 #pragma region JSON serialization for string enum Keys
@@ -1274,3 +1257,57 @@ from_json<Shared::OpenDialogOptions>(const crow::json::rvalue& _value) {
   return _res;
 }
 #pragma endregion JSON serialization for object OpenDialogOptions
+
+#pragma region JSON serialization for object FileSystemItem
+template <>
+struct impl_to_json<Shared::FileSystemItem> {
+  static inline crow::json::wvalue process(
+      const Shared::FileSystemItem& _value) {
+    crow::json::wvalue _res;
+    _res["file"] = to_json(_value.file);
+    _res["date"] = to_json(_value.date);
+    _res["size"] = to_json(_value.size);
+    _res["type"] = to_json(_value.type);
+
+    return _res;
+  }
+};
+
+template <>
+inline std::optional<Shared::FileSystemItem> from_json<Shared::FileSystemItem>(
+    const crow::json::rvalue& _value) {
+  if (_value.t() != crow::json::type::Object)
+    return std::nullopt;
+  Shared::FileSystemItem _res;
+
+  if (!_value.has("file"))
+    return std::nullopt;
+  auto _file_opt_ = from_json<std::string>(_value["file"]);
+  if (!_file_opt_.has_value())
+    return std::nullopt;
+  _res.file = std::move(*_file_opt_);
+
+  if (!_value.has("date"))
+    return std::nullopt;
+  auto _date_opt_ = from_json<double>(_value["date"]);
+  if (!_date_opt_.has_value())
+    return std::nullopt;
+  _res.date = std::move(*_date_opt_);
+
+  if (!_value.has("size"))
+    return std::nullopt;
+  auto _size_opt_ = from_json<std::uint64_t>(_value["size"]);
+  if (!_size_opt_.has_value())
+    return std::nullopt;
+  _res.size = std::move(*_size_opt_);
+
+  if (!_value.has("type"))
+    return std::nullopt;
+  auto _type_opt_ = from_json<std::string>(_value["type"]);
+  if (!_type_opt_.has_value())
+    return std::nullopt;
+  _res.type = std::move(*_type_opt_);
+
+  return _res;
+}
+#pragma endregion JSON serialization for object FileSystemItem

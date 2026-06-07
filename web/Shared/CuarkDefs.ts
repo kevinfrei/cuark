@@ -1,10 +1,12 @@
 import {
   arr,
   bool,
+  dbl,
   Enum,
   enum_lst,
   enum_num,
   enum_str,
+  map,
   NEnum,
   num,
   obj,
@@ -13,8 +15,9 @@ import {
   SEnum,
   str,
   Types,
+  u64,
   u8,
-} from '@freik/ts-cpp-tooling/IDL';
+} from 'crow-idl/IDL';
 
 const CurrentView: NEnum = enum_num(num(), {
   disabled: -1,
@@ -54,6 +57,9 @@ const IpcCall: NEnum = enum_num(u8(), {
   AsyncData: 9,
   MenuAction: 10,
   ShowOpenDialog: 11,
+  GetFileSystemRoots: 12,
+  GetNamedLocations: 13,
+  GetFolderContents: 14,
 });
 
 const SocketMsg: Enum = enum_lst(u8(), [
@@ -83,6 +89,17 @@ const OpenDialogOptions = obj({
   filters: opt(arr(ref('FileFilterItem'))),
 });
 
+const NamedLocations = map(str(), str());
+
+const FileSystemItem = obj({
+  file: str(),
+  date: dbl(),
+  size: u64(),
+  type: str(),
+});
+
+const FolderContents = arr(ref('FileSystemItem'));
+
 export const TypesToGenerate: Record<string, Types> = {
   Keys,
   StrId,
@@ -93,6 +110,9 @@ export const TypesToGenerate: Record<string, Types> = {
   MimeData,
   FileFilterItem,
   OpenDialogOptions,
+  NamedLocations,
+  FileSystemItem,
+  FolderContents,
 };
 
 export const PicklersToGenerate: Record<string, Types> = {};

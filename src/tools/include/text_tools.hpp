@@ -2,7 +2,9 @@
 
 #include <cctype>
 #include <charconv>
+#include <codecvt>
 #include <cwctype>
+#include <locale>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -118,5 +120,60 @@ T from_string(const char* s) {
 
 std::string lowercase(std::string_view str);
 bool iequals(std::string_view lhs, std::string_view rhs);
+
+// Suppress deprecation warnings for legacy support
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#else
+#pragma warning(push)
+#pragma warning(disable : 4996) // MSVC
+#endif
+
+// Usage Examples:
+// std::string utf8 = convert_string<char, wchar_t>(wide_str); // wstring ->
+// string std::wstring wide = convert_string<wchar_t, char>(utf8_str); // string
+// -> wstring
+template <typename TargetChar, typename SourceChar>
+std::basic_string<TargetChar> convert_string(
+    const std::basic_string<SourceChar>& input) {
+  if (input.empty())
+    return {};
+
+  if constexpr (std::is_same_v<TargetChar, SourceChar>) {
+    return input;
+  }
+  // Define conversion types based on source/target
+  using Cvtptr = std::conditional_t<
+      std::is_same_v<SourceChar, char> && std::is_same_v<TargetChar, wchar_t>,
+      std::codecvt_utf8_utf16<wchar_t>, // char (UTF-8) -> wchar_t
+      std::conditional_t<std::is_same_v<SourceChar, wchar_t> &&
+                             std::is_same_v<TargetChar, char>,
+                         std::codecvt_utf8_utf16<wchar_t>, // wchar_t -> char
+                                                           // (UTF-8)
+                         void // Add other combinations if needed
+                         >>;
+
+  static_assert(!std::is_same_v<Cvtptr, void>,
+                "Unsupported conversion combination");
+
+  std::wstring_convert<Cvtptr, SourceChar> converter;
+
+  if constexpr (std::is_same_v<SourceChar, char>) {
+    // Converting FROM narrow string
+    auto wide_intermediate = converter.from_bytes(input);
+    return std::basic_string<TargetChar>(wide_intermediate.begin(),
+                                         wide_intermediate.end());
+  } else {
+    // Converting FROM wide string
+    return converter.to_bytes(input);
+  }
+}
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#else
+#pragma warning(pop)
+#endif
 
 } // namespace text

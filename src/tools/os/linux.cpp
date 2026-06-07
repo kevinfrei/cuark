@@ -4,7 +4,9 @@
 #include <sstream>
 #include <string>
 
+#include <pwd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "file_tools.hpp"
 #include "os.hpp"
@@ -64,6 +66,18 @@ void root_iterator::populate_roots(bool) {
   for (auto el : roots) {
     m_roots.emplace_back(el.second);
   }
+}
+
+std::string get_home_dir() {
+  const char* home = std::getenv("HOME");
+  if (home != nullptr) {
+    return home;
+  }
+  struct passwd* pwd = getpwuid(getuid());
+  if (pwd != nullptr) {
+    return pwd->pw_dir;
+  }
+  return ""; // Failed to retrieve
 }
 
 } // namespace files
