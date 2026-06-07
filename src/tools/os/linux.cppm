@@ -1,17 +1,12 @@
 module;
 
-#include <filesystem>
-#include <fstream>
-#include <map>
-#include <sstream>
-#include <string>
-#include <vector>
-
 #include <pwd.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 export module os.tools.file;
+
+import std;
 
 namespace os::tools::file {
 
