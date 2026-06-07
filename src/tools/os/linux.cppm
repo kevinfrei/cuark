@@ -1,25 +1,24 @@
+module;
+
 #include <filesystem>
 #include <fstream>
 #include <map>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include <pwd.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "file_tools.hpp"
-#include "os.hpp"
+export module os.tools.file;
 
-namespace os {
-bool is_hidden_file_os(const std::filesystem::path& /*path*/) {
+namespace os::tools::file {
+
+export bool is_hidden_file_os(const std::filesystem::path& /*path*/) {
   return false;
 }
-} // namespace os
 
-namespace files {
-
-namespace {
 void add_shortest(std::map<std::uint64_t, std::string>& roots,
                   std::string mount_point) {
   struct stat st;
@@ -35,9 +34,8 @@ void add_shortest(std::map<std::uint64_t, std::string>& roots,
   }
   cur->second = mount_point;
 }
-} // namespace
 
-void root_iterator::populate_roots(bool) {
+export std::vector<std::filesystem::path> populate_roots_os(bool) {
   // Always include the root
   std::map<std::uint64_t, std::string> roots;
   add_shortest(roots, "/");
@@ -63,12 +61,14 @@ void root_iterator::populate_roots(bool) {
       add_shortest(roots, mountpoint);
     }
   }
+  std::vector<std::filesystem::path> m_roots;
   for (auto el : roots) {
     m_roots.emplace_back(el.second);
   }
+  return m_roots;
 }
 
-std::string get_home_dir() {
+export std::string get_home_dir() {
   const char* home = std::getenv("HOME");
   if (home != nullptr) {
     return home;
@@ -80,4 +80,4 @@ std::string get_home_dir() {
   return ""; // Failed to retrieve
 }
 
-} // namespace files
+} // namespace os::tools::file

@@ -9,8 +9,7 @@ module;
 #include <string>
 #include <string_view>
 
-#include <crow/http_response.h>
-#include <crow/logging.h>
+#include <crow.h>
 #include <webview.h>
 
 export module core.web;

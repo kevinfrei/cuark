@@ -52,9 +52,9 @@ else()
   endif()
   # Define TARGET_OS for the OS-specific code in tools_lib
   # Trigger CMake's module scanning:
-  set(CMAKE_CXX_SCAN_FOR_MODULES ON)
   if(APPLE)
     # For clang, we specify where to find the std/std.compat BMI's
+    set(CMAKE_CXX_SCAN_FOR_MODULES ON)
     add_compile_options("-fmodule-file=std=${STD_BMI_LOC}")
     add_compile_options("-fmodule-file=std.compat=${STD_COMPAT_BMI_LOC}")
     set(TARGET_OS macos)
