@@ -62,6 +62,11 @@ const showHiddenAtom = atom(false);
 const showFileTypesAtom = atom(true);
 
 const useStyles = makeStyles({
+  truncateCell: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
   surface: {
     height: '90vh',
     minWidth: '90vw',
@@ -434,33 +439,55 @@ function FileFolderPickerFooter({ setResult }: ResultProp): ReactElement {
   );
 }
 
-const columns: TableColumnDefinition<FileInfo>[] = [
-  createTableColumn<FileInfo>({
-    columnId: 'file',
-    compare: (a, b) => a.file.localeCompare(b.file),
-    renderHeaderCell: () => 'File Name',
-    renderCell: (item) => item.viewName,
-  }),
-  createTableColumn<FileInfo>({
-    columnId: 'type',
-    compare: (a, b) => a.type.localeCompare(b.type),
-    renderHeaderCell: (data) => 'Type',
-    renderCell: (item) => item.type,
-  }),
-  createTableColumn<FileInfo>({
-    columnId: 'size',
-    compare: (a, b) => (a.size < b.size ? -1 : a.size > b.size ? 1 : 0),
-    renderHeaderCell: () => 'File Size',
-    renderCell: (item) => (item.type === 'directory' ? '' : item.size),
-  }),
-  createTableColumn<FileInfo>({
-    columnId: 'date',
-    compare: (a, b) => a.date - b.date,
-    renderHeaderCell: () => 'Date',
-    // item.date is millisecondcs since epoch, so we can create a Date object from it and format it as needed
-    renderCell: (item) => new Date(item.date).toLocaleString(),
-  }),
-];
+function getSize(item: FileInfo): string {
+  switch (item.type) {
+    case 'directory':
+    case 'drive':
+      return '';
+    default:
+      return item.size.toString();
+  }
+}
+
+function makeColumns(className: string): TableColumnDefinition<FileInfo>[] {
+  return [
+    createTableColumn<FileInfo>({
+      columnId: 'file',
+      compare: (a, b) => a.file.localeCompare(b.file),
+      renderHeaderCell: () => 'File Name',
+      renderCell: (item) => (
+        <DataGridCell className={className}>{item.viewName}</DataGridCell>
+      ),
+    }),
+    createTableColumn<FileInfo>({
+      columnId: 'type',
+      compare: (a, b) => a.type.localeCompare(b.type),
+      renderHeaderCell: (data) => 'Type',
+      renderCell: (item) => (
+        <DataGridCell className={className}>{item.type}</DataGridCell>
+      ),
+    }),
+    createTableColumn<FileInfo>({
+      columnId: 'size',
+      compare: (a, b) => (a.size < b.size ? -1 : a.size > b.size ? 1 : 0),
+      renderHeaderCell: () => 'File Size',
+      renderCell: (item) => (
+        <DataGridCell className={className}>{getSize(item)}</DataGridCell>
+      ),
+    }),
+    createTableColumn<FileInfo>({
+      columnId: 'date',
+      compare: (a, b) => a.date - b.date,
+      renderHeaderCell: () => 'Date',
+      // item.date is millisecondcs since epoch, so we can create a Date object from it and format it as needed
+      renderCell: (item) => (
+        <DataGridCell className={className}>
+          {new Date(item.date).toLocaleString()}
+        </DataGridCell>
+      ),
+    }),
+  ];
+}
 
 function no_ext(name: string) {
   const lastDot = name.lastIndexOf('.');
@@ -499,6 +526,7 @@ function FileFolderPickerContent(): ReactElement {
     }
   };
 
+  const columns = useMemo(() => makeColumns(classes.truncateCell), [classes]);
   const columnSizingOptions = {
     display: { minWidth: 150, defaultWidth: 150 },
     size: { minWidth: 10, defaultWidth: 40 },
