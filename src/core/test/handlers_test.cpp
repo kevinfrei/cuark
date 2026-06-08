@@ -6,9 +6,8 @@
 #include <crow.h>
 #include <gtest/gtest.h>
 
-#include "CommonTypes.hpp"
-
-#include "handlers.hpp"
+import core.handler;
+import ts_cpp_idl.Shared;
 
 TEST(Handlers, SimpleStuff) {
   int num = 0;

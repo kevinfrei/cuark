@@ -1,16 +1,18 @@
+module;
+
 #include <filesystem>
 #include <optional>
-#include <shared_mutex>
 #include <string>
 
-#include <crow/json.h>
 #include <sago/platform_folders.h>
+
+export module core.tune;
 
 namespace fs = std::filesystem;
 
 namespace tunes {
 
-std::optional<fs::path> get_tune(const std::string& song_key) {
+export std::optional<fs::path> get_tune(const std::string& song_key) {
   // This function should return the path to the tune file if it exists.
   // For now, we will just simulate it.
   if (song_key.empty()) {

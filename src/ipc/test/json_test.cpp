@@ -1,13 +1,11 @@
-#include <algorithm>
-#include <iostream>
-#include <optional>
-#include <string>
-#include <vector>
-
 #include <crow.h>
 #include <gtest/gtest.h>
 
-#include "CommonTypes.hpp"
+#include <optional>
+#include <string>
+
+import ts_cpp_idl.Shared;
+import ts_cpp_idl.crow_support;
 
 TEST(CommonTypes, Keys) {
   crow::json::wvalue json_value = to_json(Shared::Keys::Settings);

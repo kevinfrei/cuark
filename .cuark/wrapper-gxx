@@ -1,0 +1,3 @@
+#!/bin/bash
+# This let's me override CMake's moduler-mapper file with GCC's module-mapper server
+exec g++ "$@" -fmodule-mapper="|@g++-mapper-server -r $HOME/.cache/cpp.module.cache"

@@ -23,7 +23,7 @@ class Library(NamedTuple):
 
 libraries = [
     # Library("boost", "1.90.0", CMakeInfo("Boost", "boost::boost")),
-    Library("crowcpp-crow", "1.3.1", CMakeInfo("Crow", "Crow::Crow")),
+    Library("crowcpp-crow", "1.3.2", CMakeInfo("Crow", "Crow::Crow")),
     Library("efsw", "1.5.1"),
     Library("gtest", "1.17.0", CMakeInfo("GTest", "gtest::gtest")),
     # Library("libjpeg", "9f"),

@@ -1,10 +1,11 @@
+#include <filesystem>
 #include <string>
 
 #include <gtest/gtest.h>
 
-#include "file_tools.hpp"
-#include "hacks.hpp"
-#include "text_tools.hpp"
+import tools.file;
+import tools.text;
+import tools.hacks;
 
 // clang-format off
 constexpr uint8_t latin_chars[] = {
@@ -54,7 +55,7 @@ TEST(Text, lowercasing) {
   EXPECT_EQ(text::lowercase(result), result);
   std::filesystem::path p("C:\\Path\\To\\File.TXT");
   std::filesystem::path expected_path("C:\\Path\\To\\File.txt");
-  files::lowercase_extension(p);
+  file::lowercase_extension(p);
   EXPECT_EQ(p, expected_path);
 }
 
@@ -81,7 +82,7 @@ TEST(Files, RootIterator) {
   std::set<std::filesystem::path> roots;
   size_t count = 0;
   int len = -16384;
-  for (const auto& root : files::drive_range{}) {
+  for (const auto& root : file::drive_range{}) {
     found_slash |= (root == "/");
     roots.insert(root);
     count++;
@@ -90,7 +91,7 @@ TEST(Files, RootIterator) {
     } else if (root.string().size() != static_cast<size_t>(len)) {
       len = -1;
     }
-    std::cout << "Found root: " << root << std::endl;
+    // std::cout << "Found root: " << root << std::endl;
   }
 #if defined(__linux__)
   EXPECT_TRUE(found_slash);
@@ -105,6 +106,7 @@ TEST(Files, RootIterator) {
   EXPECT_TRUE(len == 3); // Windows roots should all be chars (e.g. C:\)
 #else
   std::cout << "Testing on unknown OS\n";
+  EXPECT_FALSE(true);
 #endif
   EXPECT_FALSE(roots.empty());
   // No duplicates:

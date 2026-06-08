@@ -4,7 +4,7 @@ add_executable(
   files_test.cpp
   handlers_test.cpp
   images_test.cpp
-  tools_test.cpp
+  web_test.cpp
 )
 target_link_libraries(
   core_testing

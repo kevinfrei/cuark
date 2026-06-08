@@ -1,28 +1,30 @@
 # The core library of the app, implementing the main logic.
 # This is basically everything except the main entry point and the tests.
 
-add_library(
+add_library(core_lib)
+target_sources(
   core_lib
-  STATIC
-    config.cpp
-    files.cpp
-    images.cpp
-    handlers.cpp
-    quitting.cpp
-    setup.cpp
-    tools.cpp
-    transpile.cpp
-    tunes.cpp
-    websocket.cpp
-    window.cpp
+  PUBLIC
+  FILE_SET
+  CXX_MODULES
+  FILES
+    config.cppm
+    files.cppm
+    handlers.cppm
+    images.cppm
+    quitting.cppm
+    setup.cppm
+    transpile.cppm
+    tunes.cppm
+    web.cppm
+    websocket.cppm
 )
-target_include_directories(core_lib PUBLIC include)
 # This would be for core-specific header files:
 # target_include_directories(core_lib PRIVATE impl)
 
 if(APPLE)
   set_source_files_properties(
-    files.cpp
+    files.cppm
     PROPERTIES
     COMPILE_FLAGS
     "-Wno-deprecated-declarations"

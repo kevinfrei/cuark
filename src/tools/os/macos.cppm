@@ -1,21 +1,21 @@
+module;
+
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
 #include <pwd.h>
 #include <unistd.h>
+#include <vector>
 
-#include "file_tools.hpp"
-#include "os.hpp"
+export module os.tools.file;
 
-namespace os {
-bool is_hidden_file_os(const std::filesystem::path& /*path*/) {
+namespace os::tools::file {
+export bool is_hidden_file_os(const std::filesystem::path& /*path*/) {
   return false;
 }
-} // namespace os
 
-namespace files {
-
-void root_iterator::populate_roots(bool) {
+export std::vector<std::filesystem::path> populate_roots_os(bool) {
+  std::vector<std::filesystem::path> m_roots;
   // Always include the root
   m_roots.emplace_back("/");
 
@@ -30,9 +30,10 @@ void root_iterator::populate_roots(bool) {
       }
     }
   }
+  return m_roots;
 }
 
-std::string get_home_dir() {
+export std::string get_home_dir() {
   const char* home = std::getenv("HOME");
   if (home != nullptr) {
     return home;
@@ -44,4 +45,4 @@ std::string get_home_dir() {
   return ""; // Failed to retrieve
 }
 
-} // namespace files
+} // namespace os::tools::file
