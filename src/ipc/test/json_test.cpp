@@ -1,7 +1,9 @@
 #include <crow.h>
 #include <gtest/gtest.h>
 
-import std;
+#include <optional>
+#include <string>
+
 import ts_cpp_idl.Shared;
 import ts_cpp_idl.crow_support;
 
