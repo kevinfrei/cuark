@@ -1,5 +1,4 @@
-import { DefaultButton } from '@fluentui/react';
-import { Expandable, StateToggle } from '@freik/fluentui-tools';
+import { Expandable } from '@freik/fluentui-tools';
 import {
   isArrayOfString,
   isBoolean,
@@ -12,11 +11,12 @@ import {
   OpenDialogOptions,
   StorageId,
 } from '../../Shared/CommonTypes';
-import { useJotaiBoolState } from '../../State/Hooks';
 import { atomWithMainStorage } from '../../State/Storage';
 import { PostMain } from '../../Tools/Ipc';
 import { ShowOpenDialog } from '../../Tools/Utilities';
 
+import { Button, Switch } from '@fluentui/react-components';
+import { useAtom } from 'jotai';
 import './styles/Settings.css';
 
 const btnWidth: CSSProperties = { width: '155px', padding: 0 };
@@ -24,8 +24,14 @@ const btnWidth: CSSProperties = { width: '155px', padding: 0 };
 const setting = atomWithMainStorage(StorageId.SettingValue, true, isBoolean);
 
 function ArticleSorting(): ReactElement {
-  const articles = useJotaiBoolState(setting);
-  return <StateToggle label="Ignore articles when sorting" state={articles} />;
+  const [articles, setArticles] = useAtom(setting);
+  return (
+    <Switch
+      label="Ignore articles when sorting"
+      checked={articles}
+      onChange={() => setArticles(!articles)}
+    />
+  );
 }
 
 export function SettingsView(): ReactElement {
@@ -46,19 +52,20 @@ export function SettingsView(): ReactElement {
       </Expandable>
       <Expandable separator label="Some Things" defaultShow={true}>
         <>
-          <DefaultButton
-            text="Call a Thing"
+          <Button
+            appearance="primary"
             style={btnWidth}
-            onClick={() => PostMain(IpcCall.RestoreWindow)}
-          />
+            onClick={() => PostMain(IpcCall.RestoreWindow)}>
+            Call a Thing
+          </Button>
           &nbsp;
-          <DefaultButton
-            text="Clear another Thing"
+          <Button
+            appearance="secondary"
             style={btnWidth}
-            onClick={() => PostMain(IpcCall.MaximizeWindow)}
-          />
-          <DefaultButton
-            text="Show Open File Dialog"
+            onClick={() => PostMain(IpcCall.MaximizeWindow)}>
+            Clear another Thing
+          </Button>
+          <Button
             style={btnWidth}
             onClick={() => {
               const odo: OpenDialogOptions = {
@@ -79,8 +86,9 @@ export function SettingsView(): ReactElement {
                   );
                 }
               });
-            }}
-          />
+            }}>
+            Show Open File Dialog
+          </Button>
           <div>{Data}</div>
         </>
       </Expandable>

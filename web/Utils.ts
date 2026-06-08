@@ -1,8 +1,5 @@
 // This is for getting at "global" stuff from the window object
-import { RefObject } from '@fluentui/react';
 import { MakeLog } from '@freik/logger';
-import { hasFieldOf, isObjectNonNull } from '@freik/typechk';
-import { ForwardedRef } from 'react';
 import { Keys } from './Shared/CommonTypes';
 
 const { log } = MakeLog('EMP:render:Tools');
@@ -101,12 +98,6 @@ export function divGrand(val: string): string {
   flt = flt.replace(/0+$/g, '');
   flt = flt.replace(/\.$/, '');
   return flt;
-}
-
-export function isValidRefObject<T>(
-  ref: ForwardedRef<T>,
-): ref is RefObject<T> & { current: T } {
-  return isObjectNonNull(ref) && hasFieldOf(ref, 'current', isObjectNonNull);
 }
 
 // Hurray for IIFE's :)

@@ -1,25 +1,9 @@
-import {
-  ISliderStyles,
-  ISpinButtonStyleProps,
-  ISpinButtonStyles,
-  IStyleFunctionOrObject,
-  Position,
-  SpinButton,
-} from '@fluentui/react';
 import { MakeLog } from '@freik/logger';
+import { chkAnyOf, isArrayOfString, isString } from '@freik/typechk';
 import {
-  chkAnyOf,
-  isArrayOfString,
-  isNumber,
-  isString,
-  isUndefined,
-} from '@freik/typechk';
-import {
-  CSSProperties,
   Component,
   ForwardedRef,
   ReactElement,
-  SyntheticEvent,
   useEffect,
   useRef,
   useState,
@@ -35,92 +19,6 @@ export function Utilities(props: {
   audioRef: ForwardedRef<HTMLAudioElement>;
 }): ReactElement {
   return <></>;
-}
-
-export const mySliderStyles: Partial<ISliderStyles> = {
-  thumb: {
-    borderWidth: 1,
-    width: 6,
-    height: 10,
-    top: -3,
-    zIndex: 100,
-  },
-  line: {
-    zIndex: 100,
-  },
-};
-
-export type StringSpinButtonProps = {
-  id?: string;
-  className?: string;
-  label?: string;
-  value: number;
-  filter: (val: string) => number | undefined;
-  format: (val: number) => string;
-  min: number;
-  max: number;
-  step: number;
-  onChange: (newValue?: number) => void;
-  style?: CSSProperties;
-  labelPosition?: Position;
-  styles?: IStyleFunctionOrObject<ISpinButtonStyleProps, ISpinButtonStyles>;
-};
-
-export function StringSpinButton({
-  id,
-  className,
-  label,
-  value,
-  filter,
-  format,
-  min,
-  max,
-  step,
-  onChange,
-  style,
-  styles,
-  labelPosition,
-}: StringSpinButtonProps): ReactElement {
-  const onIncrement = (val: string): string | void => {
-    const num = filter(val);
-    if (isNumber(num)) {
-      return format(Math.min(num + step, max));
-    }
-  };
-  const onDecrement = (val: string): string | void => {
-    const num = filter(val);
-    if (isNumber(num)) {
-      return format(Math.max(num - step, min));
-    }
-  };
-  const onValidate = (val: string): string | void => {
-    const num = filter(val);
-    if (isNumber(num)) {
-      return format(Math.max(Math.min(num, max), min));
-    }
-  };
-  const internalChange = (
-    event: SyntheticEvent<HTMLElement>,
-    newValue?: string,
-  ) => {
-    const numVal = isUndefined(newValue) ? newValue : filter(newValue);
-    onChange(numVal);
-  };
-  return (
-    <SpinButton
-      id={id}
-      className={className}
-      label={label}
-      value={format(value)}
-      style={style}
-      styles={styles}
-      labelPosition={labelPosition}
-      onChange={internalChange}
-      onValidate={onValidate}
-      onIncrement={onIncrement}
-      onDecrement={onDecrement}
-    />
-  );
 }
 
 type EBProps = { children: React.ReactNode };
