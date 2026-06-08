@@ -778,7 +778,7 @@ inline constexpr std::optional<CurrentView> from_string<CurrentView>(
 #pragma endregion linear enum CurrentView
 
 #pragma region linear enum IpcCall
-enum class IpcCall : std::uint8_t {
+enum class IpcCall : std::uint16_t {
   Unknown = 0,
   ReadFromStorage = 1,
   WriteToStorage = 2,
@@ -896,7 +896,7 @@ inline constexpr std::string_view to_string(IpcCall _value) {
 template <>
 inline constexpr std::optional<IpcCall> from_string<IpcCall>(
     std::string_view _str) {
-  std::uint8_t _val;
+  std::uint16_t _val;
   auto [ptr, ec] =
       std::from_chars(_str.data(), _str.data() + _str.size(), _val);
   if (ec != std::errc{}) {

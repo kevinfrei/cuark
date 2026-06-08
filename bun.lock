@@ -26,7 +26,7 @@
         "@types/react": "19.2.17",
         "@types/react-dom": "19.2.3",
         "clang-format": "^1.8.0",
-        "crow-idl": "^0.8.1",
+        "crow-idl": "^0.9.0",
         "lint-staged": "^17.0.7",
         "prettier": "^3.8.3",
         "prettier-plugin-organize-imports": "^4.3.0",
@@ -322,7 +322,7 @@
 
     "concat-map": ["concat-map@0.0.1", "", {}, "sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg=="],
 
-    "crow-idl": ["crow-idl@0.8.1", "", { "dependencies": { "prettier-plugin-organize-imports": "^4.3.0" }, "peerDependencies": { "@freik/typechk": "^0.9.1", "prettier": "^3.8.1", "typescript": "^6.0.3" }, "bin": { "crow-idl": "build/src/crow-idl.js" } }, "sha512-wEBEiTzIhoJh8Ub+nPaj6ZKeaZg6h+UPtWpRtSLJWB3CGkpKHiTEYhWgj9qm3jwZ+j5M/MJH2BYWasajOpwMZw=="],
+    "crow-idl": ["crow-idl@0.9.0", "", { "dependencies": { "prettier-plugin-organize-imports": "^4.3.0" }, "peerDependencies": { "@freik/typechk": "^0.9.1", "prettier": "^3.8.1", "typescript": "^6.0.3" }, "bin": { "crow-idl": "build/src/crow-idl.js" } }, "sha512-Zxw2sAJI9vm2Lqmmfx2/6Sx4QwIhg8WmpAna9Pfm4wtirbgD1BsruI9FX4Yzno54NA7jfXG6Xh8DZ8SHjtG5Vg=="],
 
     "csstype": ["csstype@3.2.3", "", {}, "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ=="],
 
