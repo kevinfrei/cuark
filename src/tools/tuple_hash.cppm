@@ -1,9 +1,8 @@
 module;
 
-#include <functional>
-#include <tuple>
-
 export module tools.tuple_hash;
+
+import std;
 
 export {
 
@@ -16,8 +15,8 @@ export {
   // Custom hash struct for std::tuple
   struct TupleHash {
     template <typename... Args>
-    size_t operator()(const std::tuple<Args...>& t) const {
-      size_t seed = 9999991;
+    std::size_t operator()(const std::tuple<Args...>& t) const {
+      std::size_t seed = 9999991;
       // Use std::apply to unpack the tuple and combine hashes of its elements
       std::apply(
           [&](const auto&... elements) {

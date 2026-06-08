@@ -1,9 +1,7 @@
-#include <filesystem>
-#include <iostream>
-#include <string>
-
 #include <crow.h>
 #include <gtest/gtest.h>
+
+import std;
 
 import core.file;
 

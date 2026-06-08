@@ -1,13 +1,11 @@
 module;
 
-#include <filesystem>
-#include <string>
-#include <vector>
-
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 export module os.tools.file;
+
+import std;
 
 namespace os::tools::file {
 

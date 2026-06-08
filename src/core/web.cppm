@@ -1,18 +1,11 @@
 module;
 
-#include <cctype>
-#include <iomanip>
-#include <iostream>
-#include <optional>
-#include <random>
-#include <sstream>
-#include <string>
-#include <string_view>
-
 #include <crow.h>
 #include <webview.h>
 
 export module core.web;
+
+import std;
 
 namespace web {
 

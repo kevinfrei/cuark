@@ -1,9 +1,8 @@
 module;
 
-#include <cstdint>
-#include <utility>
-
 export module tools.hacks;
+
+import std;
 
 export {
 

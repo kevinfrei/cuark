@@ -1,18 +1,8 @@
 module;
 
-#include <algorithm>
-#include <cctype>
-#include <cstddef>
-#include <cwctype>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <iterator>
-#include <string>
-#include <vector>
-
 export module tools.file;
+
+import std;
 
 import tools.text;
 import os.tools.file;
@@ -87,7 +77,7 @@ export {
   class root_iterator {
 
    private:
-    size_t m_index;
+    std::size_t m_index;
     std::vector<std::filesystem::path> m_roots;
 
     // Helper to check if we've reached the end of the roots

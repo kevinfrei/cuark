@@ -1,19 +1,11 @@
 module;
 
-#include <array>
-#include <cctype>
-#include <filesystem>
-#include <iostream>
-#include <optional>
-#include <ranges>
-#include <sstream>
-#include <string>
-#include <tuple>
-
 #include <crow.h>
 #include <crow/logging.h>
 
 export module core.handler;
+
+import std;
 
 import core.config;
 import core.file;

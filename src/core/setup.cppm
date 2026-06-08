@@ -1,12 +1,10 @@
 module;
 
-#include <cstdint>
-#include <iterator>
-#include <string>
-
 #include <crow.h>
 
 export module core.setup;
+
+import std;
 
 import core.config;
 import core.file;

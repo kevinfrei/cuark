@@ -1,7 +1,6 @@
-#include <filesystem>
-#include <string>
-
 #include <gtest/gtest.h>
+
+import std;
 
 import tools.file;
 import tools.text;

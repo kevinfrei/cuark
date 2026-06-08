@@ -1,7 +1,6 @@
-module;
-#include <atomic>
-
 export module core.quitting;
+
+import std;
 
 namespace quitting {
 
