@@ -1,6 +1,7 @@
+module;
 #include <atomic>
 
-#include "quitting.hpp"
+export module core.quitting;
 
 namespace quitting {
 
@@ -13,20 +14,20 @@ bool debug_quit = false;
 bool debug_quit = true;
 #endif
 
-void keep_alive() {
+export void keep_alive() {
   quit_timer.store(10);
 }
 
-bool should_quit() {
+export bool should_quit() {
   return quit && debug_quit;
 }
 
-void really_quit() {
+export void really_quit() {
   quit = true;
   debug_quit = true;
 }
 
-void loop_wait() {
+export void loop_wait() {
   if (quit_timer > 0) {
     quit_timer--;
   } else {

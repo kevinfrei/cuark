@@ -10,9 +10,7 @@ module;
 export module os.tools.file;
 
 export {
-  namespace os {
-  namespace tools {
-  namespace file {
+  namespace os::tools::file {
   bool is_hidden_file_os(const std::filesystem::path& /*path*/) {
     return false;
   }
@@ -48,8 +46,6 @@ export {
     return ""; // Failed to retrieve
   }
 
-  } // namespace file
-  } // namespace tools
-  } // namespace os
+  } // namespace os::tools::file
 
 } // export

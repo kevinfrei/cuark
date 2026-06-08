@@ -5,9 +5,8 @@
 #include <crow.h>
 #include <gtest/gtest.h>
 
-#include "files.hpp"
-
-#include "config.hpp"
+import core.config;
+import core.file;
 
 #if defined(_WIN32)
 static const char* argv0 = "core_testing.exe";

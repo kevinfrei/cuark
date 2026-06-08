@@ -4,9 +4,9 @@
 #include <crow.h>
 #include <gtest/gtest.h>
 
-#include "tools.hpp"
+import core.web;
 
-TEST(Tools, URL_Coding) {
+TEST(Web, URL_Coding) {
   /*  files::set_program_location();
     auto path1 = image::get_image_path("somethin");
     EXPECT_TRUE(path1.string().ends_with("/img/icon.svg"));

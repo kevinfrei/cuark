@@ -6,8 +6,7 @@
 #include <crow.h>
 #include <gtest/gtest.h>
 
-#include "handlers.hpp"
-
+import core.handler;
 import ts_cpp_idl.Shared;
 
 TEST(Handlers, SimpleStuff) {
