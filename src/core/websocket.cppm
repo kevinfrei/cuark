@@ -1,16 +1,20 @@
+module;
+
 #include <iostream>
 #include <string>
 
 #include <crow.h>
 
-#include "handlers.hpp"
-#include "websocket.hpp"
+export module core.websocket;
+
+import core.handler;
+import ts_cpp_idl.Shared;
 
 namespace websocket {
 
 crow::websocket::connection* webSocket = nullptr;
 
-void configure(crow::SimpleApp& app) {
+export void configure(crow::SimpleApp& app) {
   CROW_WEBSOCKET_ROUTE(app, "/ws")
       .onopen([&](crow::websocket::connection& conn) -> void {
         CROW_LOG_INFO << "WebSocket connection opened from "
@@ -28,7 +32,7 @@ void configure(crow::SimpleApp& app) {
       });
 }
 
-void keep_alive() {
+export void keep_alive() {
   if (webSocket) {
     webSocket->send_text(
         std::to_string(static_cast<uint32_t>(Shared::SocketMsg::KeepAlive)) +

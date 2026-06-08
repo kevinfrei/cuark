@@ -4,9 +4,8 @@
 #include <crow.h>
 #include <gtest/gtest.h>
 
-#include "files.hpp"
-
-#include "images.hpp"
+import core.file;
+import core.images;
 
 #if defined(_WIN32)
 static const char* argv0 = "core_testing.exe";
