@@ -7,7 +7,6 @@
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { FluentInitIcons } from './FluentInit';
 import { Ready, WebSocketRegistrar } from './Tools/ReactWebSocket';
 import { App } from './UI/App';
 
@@ -26,7 +25,6 @@ if (false /* import.meta.hot */) {
   // console.log(theActualApp);
   // TODO: Make HMR work with Crow
 } else {
-  FluentInitIcons();
   WebSocketRegistrar();
   // The hot module reloading API is not available in production.
   createRoot(elem).render(app);

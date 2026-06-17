@@ -1,10 +1,12 @@
-import { Expandable } from '@freik/fluentui-tools';
+import { Button, Switch } from '@fluentui/react-components';
+import { Expandable } from '@freik/fluent9-tools';
 import {
   isArrayOfString,
   isBoolean,
   isString,
   isUndefined,
 } from '@freik/typechk';
+import { useAtom } from 'jotai';
 import { CSSProperties, ReactElement, useState } from 'react';
 import {
   IpcCall,
@@ -14,9 +16,6 @@ import {
 import { atomWithMainStorage } from '../../State/Storage';
 import { PostMain } from '../../Tools/Ipc';
 import { ShowOpenDialog } from '../../Tools/Utilities';
-
-import { Button, Switch } from '@fluentui/react-components';
-import { useAtom } from 'jotai';
 import './styles/Settings.css';
 
 const btnWidth: CSSProperties = { width: '155px', padding: 0 };
